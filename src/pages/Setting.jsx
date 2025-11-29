@@ -6,12 +6,10 @@ import {
   Save,
   Eye,
   EyeOff,
-  Upload,
   Phone,
   Mail,
-  X,
 } from "lucide-react";
-import useUserStore from "../store/useUserStore"; // Import your store
+import useUserStore from "../store/useUserStore";
 import { toast } from "react-toastify";
 
 const Setting = () => {
@@ -20,23 +18,16 @@ const Setting = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Get user info and updateUser function from store
-  const { updateUser, loading } = useUserStore();
+  const { fetchUserById, updateUser, loading } = useUserStore();
 
-  // Profile picture state
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
-
-  // Form state
+  // Removed 'department' from state
   const [profileForm, setProfileForm] = useState({
-    firstName: "Admin",
-    lastName: "User",
-    email: "admin@shopvii.com",
-    phone: "+91 98765 43210",
-    department: "Administration",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   });
 
-  // Password form state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -50,8 +41,47 @@ const Setting = () => {
     marketingEmails: false,
   });
 
-  // Get current user ID from localStorage or context
-  const currentUserId = localStorage.getItem("userId") || "your-user-id";
+  const [accountInfo, setAccountInfo] = useState({
+    createdAt: "",
+    lastLogin: "",
+    isActive: true,
+    role: "",
+  });
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const adminUserStr = localStorage.getItem("adminUser");
+        if (!adminUserStr) return;
+
+        const adminUser = JSON.parse(adminUserStr);
+        const userId = adminUser._id;
+
+        if (!userId) return;
+
+        const userData = await fetchUserById(userId);
+
+        // Removed department assignment
+        setProfileForm({
+          firstName: userData.firstName || "",
+          lastName: userData.lastName || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+        });
+
+        setAccountInfo({
+          createdAt: userData.createdAt || "",
+          lastLogin: userData.lastLogin || "",
+          isActive: userData.isActive !== undefined ? userData.isActive : true,
+          role: userData.role || "",
+        });
+      } catch (error) {
+        toast.error("Failed to load user data");
+      }
+    };
+
+    loadUserData();
+  }, [fetchUserById]);
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
@@ -66,40 +96,6 @@ const Setting = () => {
     }));
   };
 
-  // Handle profile picture selection
-  const handleProfilePictureChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
-        return;
-      }
-
-      // Validate file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error("Image size should be less than 2MB");
-        return;
-      }
-
-      setProfilePicture(file);
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicturePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Remove profile picture
-  const handleRemoveProfilePicture = () => {
-    setProfilePicture(null);
-    setProfilePicturePreview(null);
-  };
-
-  // Handle profile form change
   const handleProfileFormChange = (e) => {
     setProfileForm({
       ...profileForm,
@@ -107,7 +103,6 @@ const Setting = () => {
     });
   };
 
-  // Handle password form change
   const handlePasswordFormChange = (e) => {
     setPasswordForm({
       ...passwordForm,
@@ -115,33 +110,60 @@ const Setting = () => {
     });
   };
 
-  // Save profile changes
   const handleSaveProfile = async () => {
     try {
-      const formData = new FormData();
-
-      // Add profile data
-      formData.append("firstName", profileForm.firstName);
-      formData.append("lastName", profileForm.lastName);
-      formData.append("email", profileForm.email);
-      formData.append("phone", profileForm.phone);
-      formData.append("department", profileForm.department);
-
-      // Add profile picture if changed
-      if (profilePicture) {
-        formData.append("profilePicture", profilePicture);
+      const adminUserStr = localStorage.getItem("adminUser");
+      if (!adminUserStr) {
+        toast.error("User not found");
+        return;
       }
 
-      await updateUser(currentUserId, formData);
+      const adminUser = JSON.parse(adminUserStr);
+      const userId = adminUser._id;
+
+      if (!userId) {
+        toast.error("User ID not found");
+        return;
+      }
+
+      // CLEAN PAYLOAD CREATION
+      // 1. Exclude department (causes "not allowed" error)
+      // 2. Only include phone if it has a value (causes "empty not allowed" error)
+      const payload = {
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        email: profileForm.email,
+      };
+
+      if (profileForm.phone && profileForm.phone.trim() !== "") {
+        payload.phone = profileForm.phone;
+      }
+
+      const result = await updateUser(userId, payload);
+      const updatedUser = result.data || result;
+
+      setProfileForm({
+        firstName: updatedUser.firstName || "",
+        lastName: updatedUser.lastName || "",
+        email: updatedUser.email || "",
+        phone: updatedUser.phone || "",
+      });
+
       toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      // Improved error message display
+      const msg = error.response?.data?.message || "Failed to update profile";
+      const validationErrors = error.response?.data?.errors;
+
+      if (validationErrors && Array.isArray(validationErrors)) {
+        toast.error(validationErrors.join(", "));
+      } else {
+        toast.error(msg);
+      }
     }
   };
 
-  // Update password
   const handleUpdatePassword = async () => {
-    // Validate passwords
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
       toast.error("Please fill all password fields");
       return;
@@ -158,19 +180,31 @@ const Setting = () => {
     }
 
     try {
-      await updateUser(currentUserId, {
+      const adminUserStr = localStorage.getItem("adminUser");
+      if (!adminUserStr) {
+        toast.error("User not found");
+        return;
+      }
+
+      const adminUser = JSON.parse(adminUserStr);
+      const userId = adminUser._id;
+
+      if (!userId) {
+        toast.error("User ID not found");
+        return;
+      }
+
+      await updateUser(userId, {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
 
-      toast.success("Password updated successfully");
-
-      // Reset password form
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
+      toast.success("Password updated successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update password");
     }
@@ -222,7 +256,7 @@ const Setting = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-sm"
                   />
                 </div>
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
                   </label>
@@ -231,24 +265,10 @@ const Setting = () => {
                     name="phone"
                     value={profileForm.phone}
                     onChange={handleProfileFormChange}
+                    placeholder="Optional"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-sm"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department
-                  </label>
-                  <select
-                    name="department"
-                    value={profileForm.department}
-                    onChange={handleProfileFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-sm"
-                  >
-                    <option>Administration</option>
-                    <option>Sales</option>
-                    <option>Operations</option>
-                  </select>
-                </div>
+                </div> */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Role
@@ -256,7 +276,7 @@ const Setting = () => {
                   <input
                     type="text"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-                    value="Super Admin"
+                    value={accountInfo.role}
                     disabled
                   />
                 </div>
@@ -328,23 +348,31 @@ const Setting = () => {
                   <span className="text-sm text-gray-600">
                     Account Created:
                   </span>
-                  <span className="text-sm font-medium">Jan 15, 2024</span>
+                  <span className="text-sm font-medium">
+                    {accountInfo.createdAt
+                      ? new Date(accountInfo.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Last Login:</span>
-                  <span className="text-sm font-medium">Oct 22, 2025</span>
-                </div>
+                  <span className="text-sm font-medium">
+                    {accountInfo.lastLogin
+                      ? new Date(accountInfo.lastLogin).toLocaleDateString()
+                      : "N/A"}
+                  </span>
+                </div> */}
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Status:</span>
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-green-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Active
+                    {accountInfo.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Sessions:</span>
                   <span className="text-sm font-medium">2 Active</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -503,7 +531,7 @@ const Setting = () => {
                     <h4 className="text-sm font-medium text-gray-900">Email</h4>
                   </div>
                   <p className="text-xs text-gray-500 mb-3">
-                    admin@shopvii.com
+                    {profileForm.email}
                   </p>
                   <button className="text-xs text-[#293a90] hover:underline">
                     Change Email
@@ -514,7 +542,7 @@ const Setting = () => {
                     <Phone className="w-4 h-4 text-[#293a90]" />
                     <h4 className="text-sm font-medium text-gray-900">Phone</h4>
                   </div>
-                  <p className="text-xs text-gray-500 mb-3">+91 98765 43210</p>
+                  <p className="text-xs text-gray-500 mb-3">{profileForm.phone || "Not set"}</p>
                   <button className="text-xs text-[#293a90] hover:underline">
                     Change Phone
                   </button>
@@ -711,7 +739,6 @@ const Setting = () => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="p-4 w-full">
-        {/* Settings Navigation */}
         <div className="bg-white rounded-lg border border-gray-200 mb-4 p-4">
           <div className="flex flex-col sm:flex-row gap-2 overflow-x-auto">
             {tabs.map((tab) => {
@@ -733,7 +760,6 @@ const Setting = () => {
           </div>
         </div>
 
-        {/* Settings Content */}
         {renderContent()}
       </div>
     </div>
