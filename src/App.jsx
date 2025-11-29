@@ -42,9 +42,7 @@ export default function App() {
   const { checkAuth, user, initializeAuth } = useAdminStore();
 
   useEffect(() => {
-    // Initialize authentication from localStorage first
     initializeAuth();
-    // Then check auth with server
     checkAuth();
   }, [checkAuth, initializeAuth]);
   return (
@@ -84,7 +82,7 @@ export default function App() {
               <Route path="statistics" element={<Statistics />} />
               <Route path="sales/orders">
                 <Route index element={<OrdersTable />} />
-                <Route path="AddOrder" element={<AddOrder />} />
+                {/* <Route path="AddOrder" element={<AddOrder />} /> */}
                 <Route
                   path="order-details/:id"
                   element={<OrderDetailsPage />}
