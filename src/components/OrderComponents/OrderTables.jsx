@@ -14,7 +14,7 @@ import useOrderStore from "../../store/useOrderStore";
 const OrdersTable = () => {
   const navigate = useNavigate();
 
-  // ✅ FIXED: Simple store selector WITHOUT shallow - prevents infinite loops
+  //  FIXED: Simple store selector WITHOUT shallow - prevents infinite loops
   const {
     fetchOrders,
     changeOrderStatus,
@@ -35,31 +35,31 @@ const OrdersTable = () => {
   const [itemsPerPage] = useState(10);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // ✅ FIXED: Mapped data with useMemo
+
   const mappedData = useMemo(() => {
     return orders.map((order) => ({
       key: order._id,
       id: order._id,
       date: order.createdAt
         ? new Date(order.createdAt).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
         : "N/A",
       rawDate: order.createdAt,
       customer:
-        `${order.customerId?.firstName || ""} ${
-          order.customerId?.lastName || ""
-        }`.trim() || "N/A",
+        `${order.customerId?.firstName || ""} ${order.customerId?.lastName || ""
+          }`.trim() || "N/A",
       orderStatus: order.status || "pending",
       paymentStatus: order.paymentInfo?.status || "pending",
-      total: `₹${(order.totalAmount / 100 || 0).toFixed(2)}`,
+      total: `₹${(order.totalAmount || 0).toFixed(2)}`,
       orderDetails: order,
     }));
   }, [orders]);
 
-  // ✅ FIXED: Load data ONCE only
+
+  //  FIXED: Load data ONCE only
   useEffect(() => {
     if (!isInitialized) {
       const loadData = async () => {
@@ -82,7 +82,7 @@ const OrdersTable = () => {
     }
   }, [error]);
 
-  // ✅ FIXED: Filtering with controlled dependencies
+  //  FIXED: Filtering with controlled dependencies
   useEffect(() => {
     let filtered = mappedData;
 
@@ -129,7 +129,7 @@ const OrdersTable = () => {
     setCurrentPage(1);
   }, [mappedData, searchText, filterStatus, sortBy, sortOrder]);
 
-  // ✅ FIXED: Stable handlers with useCallback
+  //  FIXED: Stable handlers with useCallback
   const handleStatusChange = useCallback(
     async (record, value) => {
       try {

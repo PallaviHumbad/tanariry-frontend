@@ -10,6 +10,7 @@ import {
   Mail,
 } from "lucide-react";
 import useUserStore from "../store/useUserStore";
+import useAuthStore from "../store/useAuthStore";
 import { toast } from "react-toastify";
 
 const Setting = () => {
@@ -19,6 +20,7 @@ const Setting = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { fetchUserById, updateUser, loading } = useUserStore();
+  const { changePassword, loading: passwordLoading, clearMessages } = useAuthStore();
 
   // Removed 'department' from state
   const [profileForm, setProfileForm] = useState({
@@ -174,27 +176,15 @@ const Setting = () => {
       return;
     }
 
-    if (passwordForm.newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters long");
+    if (passwordForm.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
     try {
-      const adminUserStr = localStorage.getItem("adminUser");
-      if (!adminUserStr) {
-        toast.error("User not found");
-        return;
-      }
+      clearMessages(); // Clear previous messages
 
-      const adminUser = JSON.parse(adminUserStr);
-      const userId = adminUser._id;
-
-      if (!userId) {
-        toast.error("User ID not found");
-        return;
-      }
-
-      await updateUser(userId, {
+      await changePassword({
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
@@ -402,8 +392,8 @@ const Setting = () => {
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.orderAlerts
-                          ? "translate-x-6"
-                          : "translate-x-1"
+                        ? "translate-x-6"
+                        : "translate-x-1"
                         }`}
                     />
                   </button>
@@ -422,14 +412,14 @@ const Setting = () => {
                       handleNotificationChange("emailNotifications")
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.emailNotifications
-                        ? "bg-[#293a90]"
-                        : "bg-gray-200"
+                      ? "bg-[#293a90]"
+                      : "bg-gray-200"
                       }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.emailNotifications
-                          ? "translate-x-6"
-                          : "translate-x-1"
+                        ? "translate-x-6"
+                        : "translate-x-1"
                         }`}
                     />
                   </button>
@@ -446,14 +436,14 @@ const Setting = () => {
                   <button
                     onClick={() => handleNotificationChange("smsNotifications")}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.smsNotifications
-                        ? "bg-[#293a90]"
-                        : "bg-gray-200"
+                      ? "bg-[#293a90]"
+                      : "bg-gray-200"
                       }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.smsNotifications
-                          ? "translate-x-6"
-                          : "translate-x-1"
+                        ? "translate-x-6"
+                        : "translate-x-1"
                         }`}
                     />
                   </button>
@@ -470,14 +460,14 @@ const Setting = () => {
                   <button
                     onClick={() => handleNotificationChange("marketingEmails")}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.marketingEmails
-                        ? "bg-[#293a90]"
-                        : "bg-gray-200"
+                      ? "bg-[#293a90]"
+                      : "bg-gray-200"
                       }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.marketingEmails
-                          ? "translate-x-6"
-                          : "translate-x-1"
+                        ? "translate-x-6"
+                        : "translate-x-1"
                         }`}
                     />
                   </button>
@@ -611,9 +601,9 @@ const Setting = () => {
                       )}
                     </button>
                   </div>
-                  {passwordForm.newPassword && passwordForm.newPassword.length < 8 && (
+                  {passwordForm.newPassword && passwordForm.newPassword.length < 6 && (
                     <p className="text-xs text-red-500 mt-1">
-                      Password must be at least 8 characters
+                      Password must be at least 6 characters
                     </p>
                   )}
                 </div>
@@ -655,11 +645,11 @@ const Setting = () => {
               <div className="mt-6">
                 <button
                   onClick={handleUpdatePassword}
-                  disabled={loading}
+                  disabled={passwordLoading}
                   className="inline-flex items-center gap-2 bg-[#293a90] hover:bg-[#293a90]/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Shield className="w-4 h-4" />
-                  {loading ? "Updating..." : "Update Password"}
+                  {passwordLoading ? "Updating..." : "Update Password"}
                 </button>
               </div>
             </div>
@@ -748,8 +738,8 @@ const Setting = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
-                      ? "bg-[#293a90] text-white"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-300"
+                    ? "bg-[#293a90] text-white"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-300"
                     }`}
                 >
                   <IconComponent className="w-4 h-4" />

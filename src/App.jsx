@@ -57,11 +57,11 @@ export default function App() {
           rtl={false}
           pauseOnFocusLoss={false}
           draggable
-          pauseOnHover={false}
+          pauseOnHover={true}
         />
         <Routes>
           {user ? (
-            <Route path="/" element={<MainLayout />}>
+            <Route path="" element={<MainLayout />}>
               <Route path="manage-profile" element={<ManageProfilePage />} />
               <Route path="change-password" element={<ChangePassword />} />
               <Route
@@ -79,7 +79,7 @@ export default function App() {
                 path="customers/addcustomer"
                 element={<AddCustomerForm />}
               />
-              <Route path="statistics" element={<Statistics />} />
+              <Route path="/" element={<Statistics />} />
               <Route path="sales/orders">
                 <Route index element={<OrdersTable />} />
                 {/* <Route path="AddOrder" element={<AddOrder />} /> */}

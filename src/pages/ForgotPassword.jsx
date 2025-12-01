@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FaSpinner } from "react-icons/fa";
 import {
   Mail,
@@ -9,17 +9,22 @@ import {
   CheckCircle,
   Lock,
 } from "lucide-react";
+import useAuthStore from "../store/useAuthStore";
+import { toast } from "react-toastify";
 
 export default function ForgotPassword() {
-  const [step, setStep] = useState("email"); // "email", "otp", "success"
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { forgotPassword, resetPassword, loading, clearMessages } = useAuthStore();
+
+  const [step, setStep] = useState("email"); // "email", "reset", "success"
   const [formData, setFormData] = useState({
     email: "",
-    otp: "",
     newPassword: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [resetToken, setResetToken] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Carousel slides with professional images (same as login)
@@ -43,6 +48,15 @@ export default function ForgotPassword() {
         "https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=600&fit=crop&crop=faces",
     },
   ];
+
+  // Check for token in URL (when user clicks email link)
+  useEffect(() => {
+    const tokenFromUrl = searchParams.get("token");
+    if (tokenFromUrl) {
+      setResetToken(tokenFromUrl);
+      setStep("reset");
+    }
+  }, [searchParams]);
 
   // Auto-advance carousel every 5 seconds
   useEffect(() => {
@@ -85,36 +99,30 @@ export default function ForgotPassword() {
     }
 
     try {
-      setLoading(true);
-      // TODO: Add API call to send OTP
-      // await sendOTP(formData.email);
+      clearMessages();
+      await forgotPassword(formData.email);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      setStep("otp");
+      toast.success("Password reset link sent to your email!");
       setErrors({});
+
+      // Show message to check email
+      setTimeout(() => {
+        setStep("success");
+      }, 1000);
     } catch (error) {
-      console.error("Send OTP Error:", error);
-      setErrors({
-        email: "Failed to send reset email. Please try again.",
-      });
-    } finally {
-      setLoading(false);
+      console.error("Send Reset Email Error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to send reset email. Please try again."
+      );
     }
   };
 
-  // Handle OTP and password reset submission
+  // Handle password reset submission
   const handleResetSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate OTP and passwords
+    // Validate passwords
     let tempErrors = {};
-    if (!formData.otp) {
-      tempErrors.otp = "OTP is required";
-    } else if (formData.otp.length !== 6) {
-      tempErrors.otp = "OTP must be 6 digits";
-    }
     if (!formData.newPassword) {
       tempErrors.newPassword = "New password is required";
     } else if (formData.newPassword.length < 6) {
@@ -132,26 +140,25 @@ export default function ForgotPassword() {
     }
 
     try {
-      setLoading(true);
-      // TODO: Add API call to reset password
-      // await resetPassword({
-      //   email: formData.email,
-      //   otp: formData.otp,
-      //   newPassword: formData.newPassword
-      // });
+      clearMessages();
+      await resetPassword({
+        token: resetToken,
+        newPassword: formData.newPassword,
+      });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
+      toast.success("Password reset successful!");
       setStep("success");
       setErrors({});
+
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     } catch (error) {
       console.error("Reset Password Error:", error);
-      setErrors({
-        otp: "Invalid OTP or failed to reset password. Please try again.",
-      });
-    } finally {
-      setLoading(false);
+      toast.error(
+        error.response?.data?.message || "Invalid or expired token. Please try again."
+      );
     }
   };
 
@@ -162,7 +169,7 @@ export default function ForgotPassword() {
           Forgot Password
         </h2>
         <p className="text-gray-600">
-          Enter your email address and we'll send you a reset code
+          Enter your email address and we'll send you a reset link
         </p>
       </div>
 
@@ -187,11 +194,10 @@ export default function ForgotPassword() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 ${
-                errors.email && formData.email
+              className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 ${errors.email && formData.email
                   ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
               placeholder="Enter your email"
               required
               autoFocus
@@ -205,9 +211,8 @@ export default function ForgotPassword() {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3 px-4 bg-[#293a90] text-white font-semibold rounded-lg hover:bg-[#293a90]/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2 ${
-            loading ? "opacity-75 cursor-not-allowed" : ""
-          }`}
+          className={`w-full py-3 px-4 bg-[#293a90] text-white font-semibold rounded-lg hover:bg-[#293a90]/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2 ${loading ? "opacity-75 cursor-not-allowed" : ""
+            }`}
         >
           {loading ? (
             <>
@@ -216,7 +221,7 @@ export default function ForgotPassword() {
             </>
           ) : (
             <>
-              Send Reset Code
+              Send Reset Link
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -235,38 +240,16 @@ export default function ForgotPassword() {
     </>
   );
 
-  const renderOTPStep = () => (
+  const renderResetStep = () => (
     <>
       <div className="mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-2">Reset Password</h2>
         <p className="text-gray-600">
-          Enter the code sent to {formData.email} and your new password
+          Enter your new password below
         </p>
       </div>
 
       <form onSubmit={handleResetSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Verification Code
-          </label>
-          <input
-            type="text"
-            name="otp"
-            value={formData.otp}
-            onChange={handleChange}
-            maxLength="6"
-            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 text-center tracking-widest text-lg ${
-              errors.otp
-                ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                : "border-gray-300"
-            }`}
-            placeholder="000000"
-          />
-          {errors.otp && (
-            <p className="mt-2 text-sm text-red-600">{errors.otp}</p>
-          )}
-        </div>
-
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             New Password
@@ -280,12 +263,12 @@ export default function ForgotPassword() {
               name="newPassword"
               value={formData.newPassword}
               onChange={handleChange}
-              className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 ${
-                errors.newPassword
+              className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 ${errors.newPassword
                   ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
               placeholder="Enter new password"
+              autoFocus
             />
           </div>
           {errors.newPassword && (
@@ -306,11 +289,10 @@ export default function ForgotPassword() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 ${
-                errors.confirmPassword
+              className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 ${errors.confirmPassword
                   ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                   : "border-gray-300"
-              }`}
+                }`}
               placeholder="Confirm new password"
             />
           </div>
@@ -324,9 +306,8 @@ export default function ForgotPassword() {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3 px-4 bg-[#293a90] text-white font-semibold rounded-lg hover:bg-[#293a90]/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2 ${
-            loading ? "opacity-75 cursor-not-allowed" : ""
-          }`}
+          className={`w-full py-3 px-4 bg-[#293a90] text-white font-semibold rounded-lg hover:bg-[#293a90]/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2 ${loading ? "opacity-75 cursor-not-allowed" : ""
+            }`}
         >
           {loading ? (
             <>
@@ -342,14 +323,13 @@ export default function ForgotPassword() {
         </button>
 
         <div className="text-center">
-          <button
-            type="button"
-            onClick={() => setStep("email")}
+          <Link
+            to="/forgot-password"
             className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Change Email
-          </button>
+            Request New Link
+          </Link>
         </div>
       </form>
     </>
@@ -362,11 +342,12 @@ export default function ForgotPassword() {
           <CheckCircle className="w-8 h-8 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Password Reset Successfully
+          {step === "success" && resetToken ? "Password Reset Successfully" : "Check Your Email"}
         </h2>
         <p className="text-gray-600">
-          Your password has been reset. You can now sign in with your new
-          password.
+          {step === "success" && resetToken
+            ? "Your password has been reset. Redirecting to login..."
+            : `We've sent a password reset link to ${formData.email}. Please check your email and click the link to reset your password.`}
         </p>
       </div>
 
@@ -387,13 +368,12 @@ export default function ForgotPassword() {
         {carouselSlides.map((slide, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
-              index === currentSlide
+            className={`absolute inset-0 transition-transform duration-700 ease-in-out ${index === currentSlide
                 ? "translate-x-0"
                 : index < currentSlide
-                ? "-translate-x-full"
-                : "translate-x-full"
-            }`}
+                  ? "-translate-x-full"
+                  : "translate-x-full"
+              }`}
           >
             <div className="h-full relative">
               {/* Background Image */}
@@ -426,11 +406,10 @@ export default function ForgotPassword() {
           {carouselSlides.map((_, index) => (
             <button
               key={index}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentSlide
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
                   ? "bg-white scale-125"
                   : "bg-white/40 hover:bg-white/60"
-              }`}
+                }`}
               onClick={() => setCurrentSlide(index)}
             />
           ))}
@@ -457,7 +436,7 @@ export default function ForgotPassword() {
 
           {/* Dynamic Content */}
           {step === "email" && renderEmailStep()}
-          {step === "otp" && renderOTPStep()}
+          {step === "reset" && renderResetStep()}
           {step === "success" && renderSuccessStep()}
 
           {/* Footer */}
