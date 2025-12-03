@@ -1,23 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, Row, Col, Table, Typography, Space } from "antd";
-import {
-  PrinterOutlined,
-  EditOutlined,
-  ArrowLeftOutlined,
-} from "@ant-design/icons";
-import { ArrowLeft } from "lucide-react";
-import useOrderStore from "../../store/useOrderStore";
 import { toast } from "react-toastify";
+import { ArrowLeft, Edit3, Printer, Package, MapPin, User, Mail, Phone, Calendar, CreditCard } from "lucide-react";
+import useOrderStore from "../../store/useOrderStore";
 
-const { Text } = Typography;
+const IMAGE = import.meta.env.VITE_IMAGE;
 
 const OrderDetailsPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { fetchOrderById, order, loading: storeLoading } = useOrderStore();
-
   const [localLoading, setLocalLoading] = useState(false);
 
   useEffect(() => {
@@ -39,16 +32,12 @@ const OrderDetailsPage = () => {
 
   const currentOrder = order || location.state?.order || {};
 
-  if (
-    storeLoading ||
-    localLoading ||
-    (!order && Object.keys(currentOrder).length === 0)
-  ) {
+  if (storeLoading || localLoading || (!order && Object.keys(currentOrder).length === 0)) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#293a90] mx-auto mb-2"></div>
-          <p className="text-sm text-gray-500">Loading order details...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#293a90] mx-auto mb-3"></div>
+          <p className="text-sm text-gray-600">Loading order details...</p>
         </div>
       </div>
     );
@@ -56,257 +45,257 @@ const OrderDetailsPage = () => {
 
   if (!order && Object.keys(currentOrder).length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-sm text-gray-500">
-            No order data available. Please select an order from the table.
-          </p>
+          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Order Found</h2>
+          <p className="text-sm text-gray-600">Please select an order from the table.</p>
         </div>
       </div>
     );
   }
 
-  const handleBack = () => navigate("../"); // Relative navigation
-
+  const activeOrder = order || currentOrder;
+  const handleBack = () => navigate("../");
   const handlePrint = () => window.print();
-
   const handleUpdate = () => {
     const orderId = order?._id || currentOrder._id;
     if (orderId) {
-      navigate(`../order-update/${orderId}`, {
-        state: { order: order || currentOrder },
-      });
-    } else {
-      toast.error("Cannot navigate to update page: Order ID is missing");
+      navigate(`../order-update/${orderId}`, { state: { order: order || currentOrder } });
     }
   };
 
-  // Format currency
   const formatINR = (amount) => {
     const value = (parseFloat(amount || 0) / 100).toFixed(2);
     return `₹${parseFloat(value).toLocaleString("en-IN")}`;
   };
 
-  // ✅ FIXED: Safe date formatting
   const formatDate = (dateString) =>
     dateString && !isNaN(new Date(dateString))
       ? new Date(dateString).toLocaleDateString("en-IN", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
       : "N/A";
 
-  const activeOrder = order || currentOrder;
+  const getStatusBadge = (status) => {
+    const badges = {
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      confirmed: "bg-green-100 text-green-800 border-green-300",
+      shipped: "bg-blue-100 text-blue-800 border-blue-300",
+      delivered: "bg-purple-100 text-purple-800 border-purple-300",
+      cancelled: "bg-red-100 text-red-800 border-red-300",
+    };
+    return badges[status] || badges.pending;
+  };
 
-  // Order Details Section
-  const OrderDetailsSection = () => (
-    <Card
-      className="bg-white rounded-lg border border-gray-200 shadow-sm"
-      title={
-        <h3 className="text-sm font-semibold text-gray-900">Order Details</h3>
-      }
-    >
-      <div className="space-y-2 text-xs">
-        <div className="flex justify-between">
-          <Text strong>Order ID:</Text>
-          <Text className="text-[#293a90] font-medium">
-            {activeOrder._id?.slice(-6).toUpperCase() || "N/A"}
-          </Text>
-        </div>
-        <div className="flex justify-between">
-          <Text strong>Order Date:</Text>
-          <Text>{formatDate(activeOrder.createdAt)}</Text>
-        </div>
-        <div className="flex justify-between">
-          <Text strong>Order Status:</Text>
-          <span
-            className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full border ${
-              activeOrder.status === "confirmed"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : activeOrder.status === "pending"
-                ? "bg-[#eb0082]/10 text-[#eb0082] border-[#eb0082]/20"
-                : activeOrder.status === "cancelled"
-                ? "bg-red-50 text-red-700 border-red-200"
-                : "bg-gray-50 text-gray-700 border-gray-200"
-            }`}
-          >
-            {activeOrder.status || "N/A"}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <Text strong>Payment Status:</Text>
-          <Text>{activeOrder.paymentInfo?.status || "N/A"}</Text>
-        </div>
-        <div className="flex justify-between">
-          <Text strong>Total Amount:</Text>
-          <Text className="font-semibold text-[#293a90]">
-            {formatINR(activeOrder.totalAmount)}
-          </Text>
-        </div>
-      </div>
-    </Card>
-  );
-
-  // Customer Details Section
-  const CustomerDetailsSection = () => (
-    <Card
-      className="bg-white rounded-lg border border-gray-200 shadow-sm"
-      title={
-        <h3 className="text-sm font-semibold text-gray-900">
-          Customer Details
-        </h3>
-      }
-    >
-      <div className="space-y-2 text-xs">
-        <div className="flex justify-between">
-          <Text strong>Name:</Text>
-          <Text className="text-[#293a90] font-medium">
-            {activeOrder.customerId?.firstName}{" "}
-            {activeOrder.customerId?.lastName}
-          </Text>
-        </div>
-        <div className="flex justify-between">
-          <Text strong>Email:</Text>
-          <Text>{activeOrder.customerId?.email || "N/A"}</Text>
-        </div>
-        <div className="flex justify-between">
-          <Text strong>Phone:</Text>
-          <Text>{activeOrder.customerId?.phone || "N/A"}</Text>
-        </div>
-      </div>
-    </Card>
-  );
-
-  // Address Section
-  const AddressSection = ({ type, address }) => (
-    <Card
-      className="bg-white rounded-lg border border-gray-200 shadow-sm"
-      title={
-        <h3 className="text-sm font-semibold text-gray-900">{type} Address</h3>
-      }
-    >
-      <div className="space-y-1 text-xs">
-        <p className="text-[#293a90] font-medium">
-          {activeOrder.customerId?.firstName} {activeOrder.customerId?.lastName}
-        </p>
-        <p>{address?.address || "N/A"}</p>
-        <p>
-          {address?.city}, {address?.pincode || "N/A"}
-        </p>
-        <p>
-          {address?.state}, {address?.country || "N/A"}
-        </p>
-      </div>
-    </Card>
-  );
-
-  // Order Items Table
-  const OrderItemsTable = () => {
-    const columns = [
-      {
-        title: "Product",
-        render: (_, item) => (
-          <div className="text-xs">
-            <div className="font-medium text-[#293a90]">
-              {item.name || "Unknown Product"}
-            </div>
-          </div>
-        ),
-      },
-      {
-        title: "Quantity",
-        dataIndex: "quantity",
-        key: "quantity",
-        render: (text) => <span className="text-xs font-medium">{text}</span>,
-      },
-      {
-        title: "Price",
-        render: (_, item) => (
-          <span className="text-xs font-medium text-green-600">
-            {formatINR(item.price)}
-          </span>
-        ),
-      },
-      {
-        title: "Total",
-        render: (_, item) => (
-          <span className="text-xs font-bold text-[#293a90]">
-            {formatINR(item.subtotal)}
-          </span>
-        ),
-      },
-    ];
-
-    return (
-      <Card
-        className="bg-white rounded-lg border border-gray-200 shadow-sm"
-        title={
-          <h3 className="text-sm font-semibold text-gray-900">Order Items</h3>
-        }
-      >
-        <Table
-          columns={columns}
-          dataSource={activeOrder.items || []}
-          pagination={false}
-          rowKey="_id"
-          className="overflow-x-auto font-sans"
-          rowClassName={(record, index) =>
-            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-          }
-        />
-      </Card>
-    );
+  // NEW: Function for payment status colors
+  const getPaymentStatusBadge = (status) => {
+    const badges = {
+      paid: "bg-green-100 text-green-800 border-green-300",
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      failed: "bg-red-100 text-red-800 border-red-300"
+    };
+    return badges[status] || "bg-gray-100 text-gray-800 border-gray-300";
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <div className="p-4 w-full">
-        <div className="print:hidden">
-          <div className="flex justify-between items-center mb-6">
-            <button
-              onClick={handleBack}
-              className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#293a90] px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <ArrowLeft size={16} />
-              Back to Orders
-            </button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
+        {/* Header */}
+        <div className="print:hidden mb-6">
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4"
+          >
+            <ArrowLeft size={16} />
+            <span>Orders</span>
+          </button>
 
-            <div className="flex items-center gap-3">
-              <Button
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                Order ID: {activeOrder._id?.slice(-8).toUpperCase()}
+              </h1>
+              <div className="flex items-center gap-3 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <Calendar size={14} />
+                  <span>{formatDate(activeOrder.createdAt)}</span>
+                </div>
+                <span className={`px-3 py-1 rounded-full border text-xs font-medium ${getStatusBadge(activeOrder.status)}`}>
+                  {activeOrder.status?.charAt(0).toUpperCase() + activeOrder.status?.slice(1) || "Pending"}
+                </span>
+                {/* UPDATED: Payment status badge in header */}
+                <span className={`px-3 py-1 rounded-full border text-xs font-medium ${getPaymentStatusBadge(activeOrder.paymentInfo?.status)}`}>
+                  {activeOrder.paymentInfo?.status === "pending" ? "Payment pending" : "Paid"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
                 onClick={handleUpdate}
-                className="inline-flex items-center gap-1.5 text-sm text-[#293a90] hover:text-[#293a90]/80 px-4 py-2 rounded-lg hover:bg-[#293a90]/10 transition-colors font-sans border-[#293a90]"
-                icon={<EditOutlined />}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Update Order
-              </Button>
-              <Button
+                <Edit3 size={16} />
+                Edit
+              </button>
+              <button
                 onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 text-sm text-[#eb0082] hover:text-[#eb0082]/80 px-4 py-2 rounded-lg hover:bg-[#eb0082]/10 transition-colors font-sans border-[#eb0082]"
-                icon={<PrinterOutlined />}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Print Invoice
-              </Button>
+                <Printer size={16} />
+                Print
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Grid - EQUAL HEIGHT */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 lg:items-start gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex-1 flex flex-col">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <Package size={18} className="text-gray-400" />
+                  Order items ({activeOrder.items?.length || 0})
+                </h2>
+              </div>
+              <div className="divide-y divide-gray-200 flex-1">
+                {(activeOrder.items || []).map((item, index) => (
+                  <div key={index} className="px-6 py-4 flex items-start gap-4">
+                    {item.productId?.productImages?.[0] && (
+                      <img
+                        src={`${IMAGE}${item.productId.productImages[0]}`}
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded-lg border border-gray-200 flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-900">{item.name || "Unknown Product"}</h3>
+                      <div className="mt-1 flex items-center gap-4 text-xs text-gray-600">
+                        <span>Qty: {item.quantity}</span>
+                        <span>×</span>
+                        <span className="font-medium">{formatINR(item.price)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-gray-900">{formatINR(item.subtotal)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium text-gray-900">{formatINR(activeOrder.totalAmount)}</span>
+                  </div>
+                  {/* <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Tax</span>
+                    <span className="font-medium text-gray-900">₹0.00</span>
+                  </div> */}
+                  <div className="pt-2 border-t border-gray-200 flex justify-between">
+                    <span className="text-base font-semibold text-gray-900">Total</span>
+                    <span className="text-lg font-bold text-gray-900">{formatINR(activeOrder.totalAmount)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <CreditCard size={18} className="text-gray-400" />
+                  Payment information
+                </h2>
+              </div>
+              <div className="px-6 py-4 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Payment Status</span>
+                  {/* UPDATED: Payment status badge in card */}
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${getPaymentStatusBadge(activeOrder.paymentInfo?.status)}`}>
+                    {activeOrder.paymentInfo?.status?.toUpperCase() || "PENDING"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Razorpay Order ID</span>
+                  <span className="font-mono text-xs text-gray-900">{activeOrder.paymentInfo?.razorpayOrderId || "N/A"}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Amount</span>
+                  <span className="font-semibold text-gray-900">{formatINR(activeOrder.totalAmount)}</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <Row gutter={[16, 16]}>
-            <Col xs={24} lg={12}>
-              <OrderDetailsSection />
-            </Col>
-            <Col xs={24} lg={12}>
-              <CustomerDetailsSection />
-            </Col>
-            <Col xs={24} lg={12}>
-              <AddressSection
-                type="Shipping"
-                address={activeOrder.shippingAddress}
-              />
-            </Col>
-            <Col xs={24} lg={12}>
-              <OrderItemsTable />
-            </Col>
-          </Row>
+          {/* Right Column */}
+          <div className="bg-white rounded-lg border border-gray-200 flex flex-col h-full">
+            <div className="flex-1">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900 mb-4">Customer</h2>
+                <div className="flex items-start gap-3">
+                  <User size={16} className="text-gray-400 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-gray-900">
+                      {activeOrder.customerId?.firstName} {activeOrder.customerId?.lastName}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">1 Order</p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900 mb-4">Contact information</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Mail size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-900">{activeOrder.customerId?.email || "N/A"}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-900">{activeOrder.customerId?.phone || "No phone number"}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                  <MapPin size={18} className="text-gray-400" />
+                  Shipping address
+                </h2>
+                <div className="text-sm text-gray-900 space-y-1">
+                  <p className="font-medium">
+                    {activeOrder.customerId?.firstName} {activeOrder.customerId?.lastName}
+                  </p>
+                  <p>{activeOrder.shippingAddress?.address || "N/A"}</p>
+                  <p>
+                    {activeOrder.shippingAddress?.city}, {activeOrder.shippingAddress?.state}{" "}
+                    {activeOrder.shippingAddress?.pincode}
+                  </p>
+                  <p>{activeOrder.shippingAddress?.country || "India"}</p>
+                  <p className="pt-2 text-gray-600">{activeOrder.customerId?.phone || "N/A"}</p>
+                </div>
+              </div>
+              {activeOrder.isReturnable !== undefined && (
+                <div className="px-6 py-4">
+                  <h2 className="text-base font-semibold text-gray-900 mb-4">Return policy</h2>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Returnable</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${activeOrder.isReturnable
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                      }`}>
+                      {activeOrder.isReturnable ? `Yes (${activeOrder.returnWindowDays} days)` : "No"}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

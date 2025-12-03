@@ -33,17 +33,14 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Get filtered menu items based on user role and modules
   const filteredMenuItems = useMemo(() => {
     try {
       const adminUser = JSON.parse(localStorage.getItem("adminUser"));
 
-      // If no user data or not userpannel role, show all items
       if (!adminUser || adminUser.role !== "userpannel") {
         return menuItems;
       }
 
-      // Filter menu items based on modules array
       const userModules = adminUser.modules || [];
       return menuItems.filter(item => userModules.includes(item.path));
     } catch (error) {
@@ -52,7 +49,6 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
     }
   }, []);
 
-  // Logout function
   const handleLogout = () => {
     try {
       localStorage.removeItem("adminToken");
@@ -72,7 +68,6 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
@@ -80,21 +75,20 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
         />
       )}
 
-      {/* Desktop Sidebar */}
       <nav
         className={`hidden lg:flex flex-col h-screen bg-slate-50 border-r border-slate-200/60 shadow-xl fixed top-0 left-0 transition-all duration-300 ease-in-out z-50 ${isExpanded ? "w-64" : "w-16"
           }`}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        {/* Navigation Links */}
         <div className="flex-1 py-6 overflow-y-auto scrollbar-hide flex flex-col">
-          <div className="px-3 space-y-2">
+          <div className="px-2 space-y-1">
             {filteredMenuItems.map((item, index) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative overflow-hidden ${location.pathname === item.path
+                className={`group flex items-center justify-center ${isExpanded ? "justify-start" : ""
+                  } px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative overflow-hidden ${location.pathname === item.path
                     ? "bg-[#293a90] text-white shadow-lg shadow-[#293a90]/25"
                     : "text-slate-700 hover:bg-[#293a90]/5 hover:text-[#293a90] hover:shadow-md"
                   }`}
@@ -108,17 +102,15 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
                   />
                 </div>
                 {isExpanded && (
-                  <span className="ml-4 whitespace-nowrap transition-all duration-300 opacity-100 translate-x-0">
+                  <span className="ml-3 whitespace-nowrap transition-all duration-300 opacity-100 translate-x-0">
                     {item.label}
                   </span>
                 )}
 
-                {/* Active indicator */}
                 {location.pathname === item.path && (
-                  <div className="absolute left-0 top-0 bottom-0 w-0 bg-white rounded-r-full"></div>
+                  <div className="absolute left-0 top-0 bottom-0 w-1  rounded-r-full"></div>
                 )}
 
-                {/* Tooltip for collapsed state */}
                 {!isExpanded && (
                   <div className="absolute left-full ml-3 px-3 py-2 bg-[#293a90] text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 shadow-lg">
                     {item.label}
@@ -130,11 +122,11 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
           </div>
         </div>
 
-        {/* Logout Button */}
-        <div className="px-3 py-4 mb-18 border-t border-slate-200/60 flex-shrink-0">
+        <div className="px-2 py-4 mb-18 border-t border-slate-200/60 flex-shrink-0">
           <button
             onClick={handleLogout}
-            className={`cursor-pointer group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative w-full text-slate-700 hover:bg-[#eb0082]/10 hover:text-[#eb0082] hover:shadow-md`}
+            className={`cursor-pointer group flex items-center justify-center ${isExpanded ? "justify-start" : ""
+              } px-3 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative w-full text-slate-700 hover:bg-[#eb0082]/10 hover:text-[#eb0082] hover:shadow-md`}
             title={!isExpanded ? "Logout" : ""}
           >
             <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
@@ -144,7 +136,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
               />
             </div>
             {isExpanded && (
-              <span className="ml-4 whitespace-nowrap transition-all duration-300">
+              <span className="ml-3 whitespace-nowrap transition-all duration-300">
                 Logout
               </span>
             )}
@@ -159,12 +151,10 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
         </div>
       </nav>
 
-      {/* Mobile Sidebar */}
       <nav
         className={`lg:hidden fixed top-0 left-0 z-50 h-screen w-80 bg-slate-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
-        {/* Mobile Header */}
         <div className="px-6 py-4 border-b border-slate-200/60 flex-shrink-0 bg-[#293a90]">
           <div className="flex items-center justify-between">
             <button
@@ -176,7 +166,6 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         <div className="flex-1 py-6 overflow-y-auto flex flex-col">
           <div className="px-4 space-y-2">
             {filteredMenuItems.map((item, index) => (
@@ -204,7 +193,6 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
           </div>
         </div>
 
-        {/* Mobile Logout */}
         <div className="px-4 py-4 mb-16 border-t border-slate-200/60 flex-shrink-0">
           <button
             onClick={handleLogout}
@@ -219,7 +207,6 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
         </div>
       </nav>
 
-      {/* Custom Styles */}
       <style jsx>{`
         .scrollbar-hide {
           -ms-overflow-style: none;

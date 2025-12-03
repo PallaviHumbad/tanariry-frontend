@@ -43,7 +43,7 @@ const useReturnStore = create((set) => ({
         }
       );
 
-      console.log("Submit Return Request Response:", response.data);
+      // console.log("Submit Return Request Response:", response.data);
 
       set({
         loading: false,
@@ -54,7 +54,7 @@ const useReturnStore = create((set) => ({
 
       return response.data;
     } catch (error) {
-      console.error("Submit Return Request Error:", error.response?.data);
+      // console.error("Submit Return Request Error:", error.response?.data);
       set({
         error:
           error.response?.data?.message || "Failed to submit return request",
@@ -80,7 +80,7 @@ const useReturnStore = create((set) => ({
         params,
       });
 
-      console.log("Get All Return Requests Response:", response.data);
+      // console.log("Get All Return Requests Response:", response.data);
 
       set({
         returnRequests: response.data.data.returnRequests,
@@ -91,7 +91,7 @@ const useReturnStore = create((set) => ({
 
       return response.data;
     } catch (error) {
-      console.error("Get All Return Requests Error:", error.response?.data);
+      // console.error("Get All Return Requests Error:", error.response?.data);
       set({
         error:
           error.response?.data?.message || "Failed to fetch return requests",
@@ -107,7 +107,7 @@ const useReturnStore = create((set) => ({
     try {
       const response = await axiosInstance.get("/orders/my-return-requests");
 
-      console.log("Get My Return Requests Response:", response.data);
+      // console.log("Get My Return Requests Response:", response.data);
 
       set({
         myReturnRequests: response.data.data,
@@ -117,7 +117,7 @@ const useReturnStore = create((set) => ({
 
       return response.data;
     } catch (error) {
-      console.error("Get My Return Requests Error:", error.response?.data);
+      // console.error("Get My Return Requests Error:", error.response?.data);
       set({
         error:
           error.response?.data?.message ||
@@ -137,7 +137,7 @@ const useReturnStore = create((set) => ({
         approvalData
       );
 
-      console.log("Approve Return Request Response:", response.data);
+      // console.log("Approve Return Request Response:", response.data);
 
       // Update the return request in the list
       set((state) => ({
@@ -152,7 +152,7 @@ const useReturnStore = create((set) => ({
 
       return response.data;
     } catch (error) {
-      console.error("Approve Return Request Error:", error.response?.data);
+      // console.error("Approve Return Request Error:", error.response?.data);
       set({
         error:
           error.response?.data?.message || "Failed to approve return request",
@@ -172,7 +172,7 @@ const useReturnStore = create((set) => ({
         rejectionData
       );
 
-      console.log("Reject Return Request Response:", response.data);
+      // console.log("Reject Return Request Response:", response.data);
 
       // Update the return request in the list
       set((state) => ({
@@ -187,7 +187,7 @@ const useReturnStore = create((set) => ({
 
       return response.data;
     } catch (error) {
-      console.error("Reject Return Request Error:", error.response?.data);
+      // console.error("Reject Return Request Error:", error.response?.data);
       set({
         error:
           error.response?.data?.message || "Failed to reject return request",
@@ -206,7 +206,7 @@ const useReturnStore = create((set) => ({
         `/orders/${orderId}/return-request/complete`
       );
 
-      console.log("Complete Return Request Response:", response.data);
+      // console.log("Complete Return Request Response:", response.data);
 
       // Update the return request in the list
       set((state) => ({
@@ -222,7 +222,7 @@ const useReturnStore = create((set) => ({
 
       return response.data;
     } catch (error) {
-      console.error("Complete Return Request Error:", error.response?.data);
+      // console.error("Complete Return Request Error:", error.response?.data);
       set({
         error:
           error.response?.data?.message || "Failed to complete return request",
@@ -241,7 +241,7 @@ const useReturnStore = create((set) => ({
         `/orders/${orderId}/return-request/cancel`
       );
 
-      console.log("Cancel Return Request Response:", response.data);
+      // console.log("Cancel Return Request Response:", response.data);
 
       // Remove the cancelled return from my requests
       set((state) => ({
@@ -256,7 +256,7 @@ const useReturnStore = create((set) => ({
 
       return response.data;
     } catch (error) {
-      console.error("Cancel Return Request Error:", error.response?.data);
+      // console.error("Cancel Return Request Error:", error.response?.data);
       set({
         error:
           error.response?.data?.message || "Failed to cancel return request",

@@ -409,6 +409,9 @@ const AddProduct = () => {
     try {
       await createProduct(formData);
       toast.success("Product created");
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
       navigate("/catalogue/product");
     } catch (err) {
       toast.error("Create failed: " + err.message);

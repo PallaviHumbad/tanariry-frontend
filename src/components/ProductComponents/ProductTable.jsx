@@ -151,6 +151,9 @@ const ProductTable = () => {
     try {
       await deleteProduct(key);
       toast.success("Product removed successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (err) {
       toast.error("Error while removing product");
     }
@@ -160,6 +163,9 @@ const ProductTable = () => {
     try {
       await toggleStatus(id);
       toast.success("Product status toggled successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (err) {
       toast.error("Error toggling status: " + err.message);
     }
@@ -169,6 +175,9 @@ const ProductTable = () => {
     try {
       await toggleBestSeller(id);
       toast.success("Best seller status toggled successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (err) {
       toast.error("Error toggling best seller: " + err.message);
     }
@@ -178,6 +187,9 @@ const ProductTable = () => {
     try {
       await toggleHideProduct(id);
       toast.success("Hide status toggled successfully");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (err) {
       toast.error("Error toggling hide: " + err.message);
     }
@@ -492,11 +504,7 @@ const ProductTable = () => {
                     >
                       <td className="py-2 px-4">
                         <img
-                          src={
-                            record.image?.startsWith("http")
-                              ? record.image
-                              : `${IMAGE.replace(/\/$/, "")}/${record.image.replace(/^uploads[\\/]/, "")}`
-                          }
+                          src={`${IMAGE}${record.image}`}
                           alt="Product"
                           className="w-10 h-10 object-cover rounded-md border border-gray-200"
                           crossorigin="anonymous"

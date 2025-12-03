@@ -22,7 +22,6 @@ const Setting = () => {
   const { fetchUserById, updateUser, loading } = useUserStore();
   const { changePassword, loading: passwordLoading, clearMessages } = useAuthStore();
 
-  // Removed 'department' from state
   const [profileForm, setProfileForm] = useState({
     firstName: "",
     lastName: "",
@@ -87,7 +86,7 @@ const Setting = () => {
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
-    { id: "notifications", label: "Notifications", icon: Bell },
+    // { id: "notifications", label: "Notifications", icon: Bell },
     { id: "security", label: "Security", icon: Shield },
   ];
 
@@ -329,7 +328,7 @@ const Setting = () => {
               </div>
             </div> */}
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            {/* <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Account Status
               </h3>
@@ -343,7 +342,7 @@ const Setting = () => {
                       ? new Date(accountInfo.createdAt).toLocaleDateString()
                       : "N/A"}
                   </span>
-                </div>
+                </div> */}
                 {/* <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Last Login:</span>
                   <span className="text-sm font-medium">
@@ -352,195 +351,195 @@ const Setting = () => {
                       : "N/A"}
                   </span>
                 </div> */}
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Status:</span>
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-green-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     {accountInfo.isActive ? "Active" : "Inactive"}
                   </span>
-                </div>
+                </div> */}
                 {/* <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Sessions:</span>
                   <span className="text-sm font-medium">2 Active</span>
                 </div> */}
-              </div>
-            </div>
+              {/* </div>
+            </div> */}
           </div>
         );
 
-      case "notifications":
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Notification Preferences
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      Order Alerts
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      Get notified about new orders and updates
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleNotificationChange("orderAlerts")}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.orderAlerts ? "bg-[#293a90]" : "bg-gray-200"
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.orderAlerts
-                        ? "translate-x-6"
-                        : "translate-x-1"
-                        }`}
-                    />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      Email Notifications
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      Receive email notifications for important events
-                    </p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      handleNotificationChange("emailNotifications")
-                    }
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.emailNotifications
-                      ? "bg-[#293a90]"
-                      : "bg-gray-200"
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.emailNotifications
-                        ? "translate-x-6"
-                        : "translate-x-1"
-                        }`}
-                    />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      SMS Notifications
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      Get SMS alerts for critical updates
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleNotificationChange("smsNotifications")}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.smsNotifications
-                      ? "bg-[#293a90]"
-                      : "bg-gray-200"
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.smsNotifications
-                        ? "translate-x-6"
-                        : "translate-x-1"
-                        }`}
-                    />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      Marketing Emails
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      Receive promotional and marketing emails
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleNotificationChange("marketingEmails")}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.marketingEmails
-                      ? "bg-[#293a90]"
-                      : "bg-gray-200"
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.marketingEmails
-                        ? "translate-x-6"
-                        : "translate-x-1"
-                        }`}
-                    />
-                  </button>
-                </div>
-              </div>
-            </div>
+      // case "notifications":
+      //   return (
+      //     <div className="space-y-6">
+      //       <div className="bg-white rounded-lg border border-gray-200 p-6">
+      //         <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      //           Notification Preferences
+      //         </h3>
+      //         <div className="space-y-4">
+      //           <div className="flex items-center justify-between">
+      //             <div>
+      //               <h4 className="text-sm font-medium text-gray-900">
+      //                 Order Alerts
+      //               </h4>
+      //               <p className="text-xs text-gray-500">
+      //                 Get notified about new orders and updates
+      //               </p>
+      //             </div>
+      //             <button
+      //               onClick={() => handleNotificationChange("orderAlerts")}
+      //               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.orderAlerts ? "bg-[#293a90]" : "bg-gray-200"
+      //                 }`}
+      //             >
+      //               <span
+      //                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.orderAlerts
+      //                   ? "translate-x-6"
+      //                   : "translate-x-1"
+      //                   }`}
+      //               />
+      //             </button>
+      //           </div>
+      //           <div className="flex items-center justify-between">
+      //             <div>
+      //               <h4 className="text-sm font-medium text-gray-900">
+      //                 Email Notifications
+      //               </h4>
+      //               <p className="text-xs text-gray-500">
+      //                 Receive email notifications for important events
+      //               </p>
+      //             </div>
+      //             <button
+      //               onClick={() =>
+      //                 handleNotificationChange("emailNotifications")
+      //               }
+      //               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.emailNotifications
+      //                 ? "bg-[#293a90]"
+      //                 : "bg-gray-200"
+      //                 }`}
+      //             >
+      //               <span
+      //                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.emailNotifications
+      //                   ? "translate-x-6"
+      //                   : "translate-x-1"
+      //                   }`}
+      //               />
+      //             </button>
+      //           </div>
+      //           <div className="flex items-center justify-between">
+      //             <div>
+      //               <h4 className="text-sm font-medium text-gray-900">
+      //                 SMS Notifications
+      //               </h4>
+      //               <p className="text-xs text-gray-500">
+      //                 Get SMS alerts for critical updates
+      //               </p>
+      //             </div>
+      //             <button
+      //               onClick={() => handleNotificationChange("smsNotifications")}
+      //               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.smsNotifications
+      //                 ? "bg-[#293a90]"
+      //                 : "bg-gray-200"
+      //                 }`}
+      //             >
+      //               <span
+      //                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.smsNotifications
+      //                   ? "translate-x-6"
+      //                   : "translate-x-1"
+      //                   }`}
+      //               />
+      //             </button>
+      //           </div>
+      //           <div className="flex items-center justify-between">
+      //             <div>
+      //               <h4 className="text-sm font-medium text-gray-900">
+      //                 Marketing Emails
+      //               </h4>
+      //               <p className="text-xs text-gray-500">
+      //                 Receive promotional and marketing emails
+      //               </p>
+      //             </div>
+      //             <button
+      //               onClick={() => handleNotificationChange("marketingEmails")}
+      //               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications.marketingEmails
+      //                 ? "bg-[#293a90]"
+      //                 : "bg-gray-200"
+      //                 }`}
+      //             >
+      //               <span
+      //                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications.marketingEmails
+      //                   ? "translate-x-6"
+      //                   : "translate-x-1"
+      //                   }`}
+      //               />
+      //             </button>
+      //           </div>
+      //         </div>
+      //       </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Email Frequency
-              </h3>
-              <div className="space-y-3">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="frequency"
-                    className="mr-3 text-[#293a90] focus:ring-[#293a90]"
-                    defaultChecked
-                  />
-                  <span className="text-sm text-gray-700">
-                    Immediate notifications
-                  </span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="frequency"
-                    className="mr-3 text-[#293a90] focus:ring-[#293a90]"
-                  />
-                  <span className="text-sm text-gray-700">Daily digest</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="frequency"
-                    className="mr-3 text-[#293a90] focus:ring-[#293a90]"
-                  />
-                  <span className="text-sm text-gray-700">Weekly summary</span>
-                </label>
-              </div>
-            </div>
+      //       <div className="bg-white rounded-lg border border-gray-200 p-6">
+      //         <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      //           Email Frequency
+      //         </h3>
+      //         <div className="space-y-3">
+      //           <label className="flex items-center">
+      //             <input
+      //               type="radio"
+      //               name="frequency"
+      //               className="mr-3 text-[#293a90] focus:ring-[#293a90]"
+      //               defaultChecked
+      //             />
+      //             <span className="text-sm text-gray-700">
+      //               Immediate notifications
+      //             </span>
+      //           </label>
+      //           <label className="flex items-center">
+      //             <input
+      //               type="radio"
+      //               name="frequency"
+      //               className="mr-3 text-[#293a90] focus:ring-[#293a90]"
+      //             />
+      //             <span className="text-sm text-gray-700">Daily digest</span>
+      //           </label>
+      //           <label className="flex items-center">
+      //             <input
+      //               type="radio"
+      //               name="frequency"
+      //               className="mr-3 text-[#293a90] focus:ring-[#293a90]"
+      //             />
+      //             <span className="text-sm text-gray-700">Weekly summary</span>
+      //           </label>
+      //         </div>
+      //       </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Notification Channels
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Mail className="w-4 h-4 text-[#293a90]" />
-                    <h4 className="text-sm font-medium text-gray-900">Email</h4>
-                  </div>
-                  <p className="text-xs text-gray-500 mb-3">
-                    {profileForm.email}
-                  </p>
-                  <button className="text-xs text-[#293a90] hover:underline">
-                    Change Email
-                  </button>
-                </div>
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Phone className="w-4 h-4 text-[#293a90]" />
-                    <h4 className="text-sm font-medium text-gray-900">Phone</h4>
-                  </div>
-                  <p className="text-xs text-gray-500 mb-3">{profileForm.phone || "Not set"}</p>
-                  <button className="text-xs text-[#293a90] hover:underline">
-                    Change Phone
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+      //       <div className="bg-white rounded-lg border border-gray-200 p-6">
+      //         <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      //           Notification Channels
+      //         </h3>
+      //         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      //           <div className="border border-gray-200 rounded-lg p-4">
+      //             <div className="flex items-center gap-2 mb-2">
+      //               <Mail className="w-4 h-4 text-[#293a90]" />
+      //               <h4 className="text-sm font-medium text-gray-900">Email</h4>
+      //             </div>
+      //             <p className="text-xs text-gray-500 mb-3">
+      //               {profileForm.email}
+      //             </p>
+      //             <button className="text-xs text-[#293a90] hover:underline">
+      //               Change Email
+      //             </button>
+      //           </div>
+      //           <div className="border border-gray-200 rounded-lg p-4">
+      //             <div className="flex items-center gap-2 mb-2">
+      //               <Phone className="w-4 h-4 text-[#293a90]" />
+      //               <h4 className="text-sm font-medium text-gray-900">Phone</h4>
+      //             </div>
+      //             <p className="text-xs text-gray-500 mb-3">{profileForm.phone || "Not set"}</p>
+      //             <button className="text-xs text-[#293a90] hover:underline">
+      //               Change Phone
+      //             </button>
+      //           </div>
+      //         </div>
+      //       </div>
+      //     </div>
+      //   );
 
       case "security":
         return (
@@ -653,7 +652,7 @@ const Setting = () => {
                 </button>
               </div>
             </div>
-
+{/* 
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Two-Factor Authentication
@@ -683,7 +682,7 @@ const Setting = () => {
                   Generate Recovery Codes
                 </button>
               </div>
-            </div>
+            </div> */}
 
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">

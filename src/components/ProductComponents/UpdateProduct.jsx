@@ -39,7 +39,7 @@ const ProductDetailsForm = ({
             type="text"
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-xs"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
             placeholder="Enter product name"
           />
         </div>
@@ -66,10 +66,14 @@ const ProductDetailsForm = ({
 };
 
 const PriceFields = ({
-  originalPrice,
-  setOriginalPrice,
-  discountedPrice,
-  setDiscountedPrice,
+  priceINR,
+  setPriceINR,
+  discountedPriceINR,
+  setDiscountedPriceINR,
+  priceUSD,
+  setPriceUSD,
+  discountedPriceUSD,
+  setDiscountedPriceUSD,
   stock,
   setStock,
 }) => (
@@ -77,31 +81,68 @@ const PriceFields = ({
     <h3 className="text-xs font-semibold text-gray-900 mb-4 uppercase tracking-wide">
       Pricing
     </h3>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+    <div className="space-y-6">
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
-          Original Price *
-        </label>
-        <input
-          type="number"
-          value={originalPrice}
-          onChange={(e) => setOriginalPrice(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-xs"
-          placeholder="0.00"
-        />
+        <h4 className="text-xs font-medium text-gray-700 mb-3">INR Pricing</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Original Price (₹) *
+            </label>
+            <input
+              type="number"
+              value={priceINR}
+              onChange={(e) => setPriceINR(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
+              placeholder="0.00"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Discount Price (₹) *
+            </label>
+            <input
+              type="number"
+              value={discountedPriceINR}
+              onChange={(e) => setDiscountedPriceINR(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
-          Discount Price *
-        </label>
-        <input
-          type="number"
-          value={discountedPrice}
-          onChange={(e) => setDiscountedPrice(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-xs"
-          placeholder="0.00"
-        />
+        <h4 className="text-xs font-medium text-gray-700 mb-3">USD Pricing</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Original Price ($) *
+            </label>
+            <input
+              type="number"
+              value={priceUSD}
+              onChange={(e) => setPriceUSD(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
+              placeholder="0.00"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Discount Price ($) *
+            </label>
+            <input
+              type="number"
+              value={discountedPriceUSD}
+              onChange={(e) => setDiscountedPriceUSD(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
       </div>
 
       <div>
@@ -112,7 +153,7 @@ const PriceFields = ({
           type="number"
           value={stock}
           onChange={(e) => setStock(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-xs"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
           placeholder="0"
         />
       </div>
@@ -129,17 +170,14 @@ const ProductImages = ({ images, setImages }) => {
 
       <div className="flex flex-wrap gap-2">
         {images.map((file) => {
-          // Same logic as ProductTable for proper URL construction
           let displayUrl;
 
           if (file.thumbUrl?.startsWith("blob:")) {
-            // New uploaded file - use blob URL directly
             displayUrl = file.thumbUrl;
           } else if (file.url) {
-            // Existing file - construct proper URL like ProductTable
-            displayUrl = file.url.startsWith("http")
-              ? file.url
-              : `${IMAGE.replace(/\/$/, "")}/${file.url.replace(/^uploads[\\/]/, "")}`;
+            const cleanImageBase = IMAGE.replace(/\/$/, '');
+            const cleanImgPath = file.url.replace(/^\/+|^[\/\\]+/, '');
+            displayUrl = `${cleanImageBase}/${cleanImgPath}`;
           } else {
             displayUrl = file.thumbUrl;
           }
@@ -178,7 +216,7 @@ const ProductImages = ({ images, setImages }) => {
                 uid: Date.now() + Math.random(),
                 originFileObj: file,
                 thumbUrl: URL.createObjectURL(file),
-                isNew: true, // Mark as new file
+                isNew: true,
               }));
               setImages([...images, ...newFiles]);
             }}
@@ -220,7 +258,7 @@ const CategorySubCategorySelect = ({
               setSelectedCategoryId(e.target.value);
               setSelectedSubCategoryId("");
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-xs"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
           >
             <option value="">Select Category</option>
             {allCategories.map((c) => (
@@ -239,7 +277,7 @@ const CategorySubCategorySelect = ({
             <select
               value={selectedSubCategoryId}
               onChange={(e) => setSelectedSubCategoryId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#293a90] focus:border-[#293a90] text-xs"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
             >
               <option value="">Select Subcategory</option>
               {subCategories.map((sc) => (
@@ -274,9 +312,9 @@ const VisibilityFields = ({
           type="checkbox"
           checked={isActive}
           onChange={(e) => setIsActive(e.target.checked)}
-          className="h-4 w-4 text-[#293a90] focus:ring-[#293a90] border-gray-300 rounded"
+          className="h-4 w-4"
         />
-        <label className="ml-2 text-xs text-gray-900">Active</label>
+        <label className="ml-2 text-xs">Active</label>
       </div>
 
       <div className="flex items-center">
@@ -284,9 +322,9 @@ const VisibilityFields = ({
           type="checkbox"
           checked={bestSeller}
           onChange={(e) => setBestSeller(e.target.checked)}
-          className="h-4 w-4 text-[#293a90] focus:ring-[#293a90] border-gray-300 rounded"
+          className="h-4 w-4"
         />
-        <label className="ml-2 text-xs text-gray-900">Best Seller</label>
+        <label className="ml-2 text-xs">Best Seller</label>
       </div>
 
       <div className="flex items-center">
@@ -294,9 +332,9 @@ const VisibilityFields = ({
           type="checkbox"
           checked={hideProduct}
           onChange={(e) => setHideProduct(e.target.checked)}
-          className="h-4 w-4 text-[#293a90] focus:ring-[#293a90] border-gray-300 rounded"
+          className="h-4 w-4"
         />
-        <label className="ml-2 text-xs text-gray-900">Hide from Shop</label>
+        <label className="ml-2 text-xs">Hide from Shop</label>
       </div>
     </div>
   </div>
@@ -308,7 +346,7 @@ const FooterButtons = ({ onCancel, loading }) => (
       type="button"
       onClick={onCancel}
       disabled={loading}
-      className="px-4 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+      className="px-4 py-2 text-xs border border-gray-300 rounded-lg"
     >
       Cancel
     </button>
@@ -316,7 +354,7 @@ const FooterButtons = ({ onCancel, loading }) => (
     <button
       type="submit"
       disabled={loading}
-      className="px-4 py-2 text-xs font-medium bg-[#293a90] hover:bg-[#293a90]/90 text-white rounded-lg transition-colors disabled:opacity-50"
+      className="px-4 py-2 text-xs bg-[#293a90] text-white rounded-lg"
     >
       {loading ? (
         <>
@@ -338,8 +376,10 @@ const UpdateProduct = () => {
 
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
-  const [originalPrice, setOriginalPrice] = useState("");
-  const [discountedPrice, setDiscountedPrice] = useState("");
+  const [priceINR, setPriceINR] = useState("");
+  const [discountedPriceINR, setDiscountedPriceINR] = useState("");
+  const [priceUSD, setPriceUSD] = useState("");
+  const [discountedPriceUSD, setDiscountedPriceUSD] = useState("");
   const [stock, setStock] = useState("");
   const [images, setImages] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
@@ -364,25 +404,32 @@ const UpdateProduct = () => {
         if (product) {
           setProductName(product.productName || "");
           setDescription(product.description || "");
-          setOriginalPrice(product.originalPrice?.toString() || "");
-          setDiscountedPrice(product.discountPrice?.toString() || "");
+
+          // Set INR prices
+          setPriceINR(product.originalPrice?.toString() || "");
+          setDiscountedPriceINR(product.discountPrice?.toString() || "");
+
+          // Set USD prices (if they exist)
+          setPriceUSD(product.priceUSD?.toString() || "");
+          setDiscountedPriceUSD(product.discountPriceUSD?.toString() || "");
+
           setStock(product.stock?.toString() || "");
           setIsActive(product.isActive ?? true);
           setBestSeller(product.bestSeller ?? false);
           setHideProduct(product.hideProduct ?? false);
 
-          // Handle existing images - same as ProductTable
+          // FIXED IMAGE HANDLING - No more double slashes
           if (product.productImages && Array.isArray(product.productImages)) {
             const existingImages = product.productImages.map((img, index) => {
-              const imageUrl = img.startsWith("http")
-                ? img
-                : `${IMAGE.replace(/\/$/, "")}/${img.replace(/^uploads[\\/]/, "")}`;
+              const cleanImageBase = IMAGE.replace(/\/$/, '');
+              const cleanImgPath = img.replace(/^\/+|^uploads[\/\\]+/, '');
+              const imageUrl = `${cleanImageBase}/${cleanImgPath}`;
 
               return {
                 uid: `existing-${index}`,
-                url: img, // Original URL from backend
-                thumbUrl: imageUrl, // Display URL
-                isNew: false, // Mark as existing file
+                url: img,
+                thumbUrl: imageUrl,
+                isNew: false,
               };
             });
             setImages(existingImages);
@@ -392,7 +439,6 @@ const UpdateProduct = () => {
           if (product.category?._id) {
             setSelectedCategoryId(product.category._id);
 
-            // Find and set subcategory
             if (product.subCategoryId) {
               const subCatId = product.subCategoryId._id || product.subCategoryId;
               setSelectedSubCategoryId(subCatId);
@@ -420,27 +466,33 @@ const UpdateProduct = () => {
     if (
       !productName.trim() ||
       !description.trim() ||
-      !originalPrice ||
-      !discountedPrice ||
+      !priceINR ||
+      !discountedPriceINR ||
       !stock ||
       !selectedCategoryId ||
       !selectedSubCategoryId ||
       images.length === 0
     ) {
-      toast.error("All fields are required");
+      toast.error("All required fields must be filled");
       return;
     }
 
     try {
-      // Create FormData for Multer
       const formData = new FormData();
 
       // Append text fields
       formData.append("productName", productName.trim());
       formData.append("description", description.trim());
-      formData.append("originalPrice", parseFloat(originalPrice));
-      formData.append("discountPrice", parseFloat(discountedPrice));
-      formData.append("stock", parseInt(stock));
+
+      // Map INR prices to backend fields (same as AddProduct)
+      formData.append("originalPrice", priceINR);
+      formData.append("discountPrice", discountedPriceINR);
+
+      // Append USD prices (optional)
+      formData.append("priceUSD", priceUSD || 0);
+      formData.append("discountPriceUSD", discountedPriceUSD || 0);
+
+      formData.append("stock", stock);
       formData.append("category", selectedCategoryId);
       formData.append("subCategoryId", selectedSubCategoryId);
       formData.append("isActive", isActive);
@@ -453,20 +505,15 @@ const UpdateProduct = () => {
         .filter((img) => !img.isNew && img.url)
         .map((img) => img.url);
 
-      // Append new files to FormData
+      // Append new files
       newFiles.forEach((file) => {
         formData.append("productImages", file.originFileObj);
       });
 
-      // Append existing image URLs as JSON string
+      // Append existing image URLs
       if (existingUrls.length > 0) {
         formData.append("existingImages", JSON.stringify(existingUrls));
       }
-
-      // Debug log
-      console.log("FormData contents:");
-      console.log("- New files:", newFiles.length);
-      console.log("- Existing URLs:", existingUrls.length);
 
       await updateProduct(id, formData);
 
@@ -493,64 +540,63 @@ const UpdateProduct = () => {
       <div className="p-4 w-full">
         <BreadcrumbNav />
 
-        <div className="flex justify-between items-center py-2 mb-0">
-          <div>
-            <button
-              onClick={onCancel}
-              className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <ArrowLeft size={14} />
-              Back
-            </button>
-          </div>
+        <div className="flex items-center py-2 mb-0">
+          <button
+            onClick={onCancel}
+            className="inline-flex items-center gap-1.5 text-xs text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50"
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
         </div>
 
-        <div className="space-y-6 mt-4">
-          <form onSubmit={onFinish} className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <ProductDetailsForm
-                  productName={productName}
-                  setProductName={setProductName}
-                  description={description}
-                  setDescription={setDescription}
-                />
+        <form onSubmit={onFinish} className="space-y-6 mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <ProductDetailsForm
+                productName={productName}
+                setProductName={setProductName}
+                description={description}
+                setDescription={setDescription}
+              />
 
-                <PriceFields
-                  originalPrice={originalPrice}
-                  setOriginalPrice={setOriginalPrice}
-                  discountedPrice={discountedPrice}
-                  setDiscountedPrice={setDiscountedPrice}
-                  stock={stock}
-                  setStock={setStock}
-                />
+              <PriceFields
+                priceINR={priceINR}
+                setPriceINR={setPriceINR}
+                discountedPriceINR={discountedPriceINR}
+                setDiscountedPriceINR={setDiscountedPriceINR}
+                priceUSD={priceUSD}
+                setPriceUSD={setPriceUSD}
+                discountedPriceUSD={discountedPriceUSD}
+                setDiscountedPriceUSD={setDiscountedPriceUSD}
+                stock={stock}
+                setStock={setStock}
+              />
 
-                <ProductImages images={images} setImages={setImages} />
-              </div>
-
-              <div className="space-y-6">
-                <CategorySubCategorySelect
-                  allCategories={allCategories}
-                  selectedCategoryId={selectedCategoryId}
-                  setSelectedCategoryId={setSelectedCategoryId}
-                  selectedSubCategoryId={selectedSubCategoryId}
-                  setSelectedSubCategoryId={setSelectedSubCategoryId}
-                />
-
-                <VisibilityFields
-                  isActive={isActive}
-                  setIsActive={setIsActive}
-                  bestSeller={bestSeller}
-                  setBestSeller={setBestSeller}
-                  hideProduct={hideProduct}
-                  setHideProduct={setHideProduct}
-                />
-
-                <FooterButtons onCancel={onCancel} loading={loading} />
-              </div>
+              <ProductImages images={images} setImages={setImages} />
             </div>
-          </form>
-        </div>
+
+            <div className="space-y-6">
+              <CategorySubCategorySelect
+                allCategories={allCategories}
+                selectedCategoryId={selectedCategoryId}
+                setSelectedCategoryId={setSelectedCategoryId}
+                selectedSubCategoryId={selectedSubCategoryId}
+                setSelectedSubCategoryId={setSelectedSubCategoryId}
+              />
+
+              <VisibilityFields
+                isActive={isActive}
+                setIsActive={setIsActive}
+                bestSeller={bestSeller}
+                setBestSeller={setBestSeller}
+                hideProduct={hideProduct}
+                setHideProduct={setHideProduct}
+              />
+
+              <FooterButtons onCancel={onCancel} loading={loading} />
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );

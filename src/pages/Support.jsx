@@ -8,14 +8,192 @@ import {
   MessageCircle,
   ChevronDown,
   User,
-  Headphones,
-  FileText,
   RefreshCw,
-  Edit3,
   Trash2,
+  X,
+  Calendar,
+  Mail,
+  Phone,
+  Hash,
 } from "lucide-react";
-import useSupportStore from "../store/useSupportStore"; // Updated import path
+import useSupportStore from "../store/useSupportStore";
 
+// --- Ticket Details Modal Component ---
+const TicketDetailsModal = ({ ticket, onClose, onStatusChange, onDelete }) => {
+  if (!ticket) return null;
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "resolved":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "pending":
+        return <Clock className="w-4 h-4" />;
+      case "resolved":
+        return <CheckCircle className="w-4 h-4" />;
+      default:
+        return <AlertCircle className="w-4 h-4" />;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Modal Header */}
+        <div className="flex justify-between items-start p-6 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex-1 pr-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border uppercase tracking-wide ${getStatusColor(
+                  ticket.status
+                )}`}
+              >
+                {getStatusIcon(ticket.status)}
+                {ticket.status}
+              </span>
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                <Hash size={12} /> {ticket._id}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 leading-tight">
+              {ticket.title}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Modal Body - Scrollable */}
+        <div className="p-6 overflow-y-auto space-y-8">
+          {/* Customer Info Section */}
+          <div className="bg-blue-50/50 rounded-xl p-5 border border-blue-100">
+            <h3 className="text-xs font-bold text-blue-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <User size={14} /> Customer Details
+            </h3>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold text-lg border border-blue-200 shadow-sm">
+                {ticket.customerInfo?.firstName?.[0]}
+                {ticket.customerInfo?.lastName?.[0]}
+              </div>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {ticket.customerInfo?.firstName}{" "}
+                    {ticket.customerInfo?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500">Customer Name</p>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Mail size={14} className="text-gray-400" />
+                    {ticket.customerInfo?.email || "N/A"}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700 mt-1">
+                    <Phone size={14} className="text-gray-400" />
+                    {ticket.customerInfo?.phone || "N/A"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Description Section */}
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <MessageCircle size={16} className="text-gray-400" />
+              Description / Message
+            </h3>
+            <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-700 leading-relaxed border border-gray-200 whitespace-pre-wrap">
+              {ticket.description || "No description provided."}
+            </div>
+          </div>
+
+          {/* Meta Data */}
+          <div className="grid grid-cols-2 gap-4 text-xs text-gray-500 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <Calendar size={14} />
+              Created:{" "}
+              <span className="font-medium text-gray-700">
+                {new Date(ticket.createdAt).toLocaleString()}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock size={14} />
+              Last Updated:{" "}
+              <span className="font-medium text-gray-700">
+                {new Date(ticket.updatedAt).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer - Actions */}
+        <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-between items-center gap-4">
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Are you sure you want to delete this ticket? This cannot be undone."
+                )
+              ) {
+                onDelete(ticket._id);
+                onClose();
+              }
+            }}
+            className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Trash2 size={16} /> Delete Ticket
+          </button>
+
+          <div className="flex items-center gap-3">
+            {ticket.status !== "resolved" && (
+              <button
+                onClick={() => {
+                  onStatusChange(ticket._id, "resolved");
+                  onClose();
+                }}
+                className="px-5 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-sm transition-all flex items-center gap-2 font-medium"
+              >
+                <CheckCircle size={16} /> Mark Resolved
+              </button>
+            )}
+            {ticket.status !== "pending" && (
+              <button
+                onClick={() => {
+                  onStatusChange(ticket._id, "pending");
+                  onClose();
+                }}
+                className="px-5 py-2 text-sm bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-sm transition-all flex items-center gap-2 font-medium"
+              >
+                <Clock size={16} /> Mark Pending
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="px-5 py-2 text-sm bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg shadow-sm transition-all font-medium"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Main Support Tickets Component ---
 const SupportTickets = () => {
   const {
     supports,
@@ -33,6 +211,7 @@ const SupportTickets = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [selectedTicket, setSelectedTicket] = useState(null); // State for selected ticket
 
   // Load tickets on mount and when error clears
   useEffect(() => {
@@ -80,12 +259,10 @@ const SupportTickets = () => {
           bValue = new Date(b.updatedAt);
           break;
         case "customer":
-          aValue = `${a.customerInfo?.firstName || ""} ${
-            a.customerInfo?.lastName || ""
-          }`.toLowerCase();
-          bValue = `${b.customerInfo?.firstName || ""} ${
-            b.customerInfo?.lastName || ""
-          }`.toLowerCase();
+          aValue = `${a.customerInfo?.firstName || ""} ${a.customerInfo?.lastName || ""
+            }`.toLowerCase();
+          bValue = `${b.customerInfo?.firstName || ""} ${b.customerInfo?.lastName || ""
+            }`.toLowerCase();
           break;
         default:
           aValue = a[sortBy];
@@ -108,6 +285,10 @@ const SupportTickets = () => {
     try {
       await changeStatus(ticketId, newStatus);
       toast.success(`Ticket status updated to ${newStatus}`);
+      // Update local state if needed, though store should handle it
+      if (selectedTicket && selectedTicket._id === ticketId) {
+        setSelectedTicket({ ...selectedTicket, status: newStatus });
+      }
     } catch (error) {
       toast.error("Failed to update ticket status");
     }
@@ -115,10 +296,10 @@ const SupportTickets = () => {
 
   // Handle delete
   const handleDelete = async (ticketId) => {
-    if (!window.confirm("Delete this ticket?")) return;
     try {
       await deleteSupport(ticketId);
       toast.success("Ticket deleted successfully");
+      setSelectedTicket(null); // Close modal if deleted
     } catch (error) {
       toast.error("Failed to delete ticket");
     }
@@ -175,6 +356,16 @@ const SupportTickets = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
+      {/* Modal Integration */}
+      {selectedTicket && (
+        <TicketDetailsModal
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+        />
+      )}
+
       <div className="p-4 w-full">
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -227,7 +418,6 @@ const SupportTickets = () => {
           </div>
         </div>
 
-        {/* Rest of the component remains exactly the same as your original */}
         {/* Main Table Container */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           {/* Search and Filters */}
@@ -239,7 +429,7 @@ const SupportTickets = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
                   <input
                     type="text"
-                    placeholder="Search tickets..."
+                    placeholder="Search tickets by ID, name or title..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs"
@@ -304,11 +494,12 @@ const SupportTickets = () => {
                     {paginatedTickets.map((ticket) => (
                       <tr
                         key={ticket._id}
-                        className="hover:bg-gray-50 transition-colors"
+                        onClick={() => setSelectedTicket(ticket)}
+                        className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
                       >
                         <td className="px-4 py-4">
                           <div>
-                            <p className="text-sm font-medium text-gray-900 truncate max-w-[180px]">
+                            <p className="text-sm font-medium text-gray-900 truncate max-w-[180px] group-hover:text-blue-600 transition-colors">
                               {ticket.title}
                             </p>
                             <p className="text-xs text-gray-500 truncate max-w-[180px]">
@@ -334,40 +525,17 @@ const SupportTickets = () => {
                           </div>
                         </td>
                         <td className="px-4 py-4">
-                          <div className="relative group">
-                            <button
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all ${getStatusColor(
-                                ticket.status
-                              )}`}
-                            >
-                              {getStatusIcon(ticket.status)}
-                              <span className="whitespace-nowrap">
-                                {ticket.status.charAt(0).toUpperCase() +
-                                  ticket.status.slice(1)}
-                              </span>
-                              <ChevronDown size={12} />
-                            </button>
-                            <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-32 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                              <div className="p-1">
-                                <button
-                                  onClick={() =>
-                                    handleStatusChange(ticket._id, "pending")
-                                  }
-                                  className="block w-full text-left px-2 py-1 text-xs text-gray-700 hover:bg-gray-100 rounded"
-                                >
-                                  Pending
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleStatusChange(ticket._id, "resolved")
-                                  }
-                                  className="block w-full text-left px-2 py-1 text-xs text-gray-700 hover:bg-gray-100 rounded"
-                                >
-                                  Resolved
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              ticket.status
+                            )}`}
+                          >
+                            {getStatusIcon(ticket.status)}
+                            <span className="whitespace-nowrap">
+                              {ticket.status.charAt(0).toUpperCase() +
+                                ticket.status.slice(1)}
+                            </span>
+                          </span>
                         </td>
                         <td className="px-4 py-4">
                           <div>
@@ -387,21 +555,18 @@ const SupportTickets = () => {
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-2">
-                            {/* <button
-                              onClick={() => {
-                                window.location.href = `/support/${ticket._id}`;
-                              }}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                              title="View Details"
-                            >
-                              <Edit3 size={14} />
-                            </button> */}
                             <button
-                              onClick={() => handleDelete(ticket._id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
-                              title="Delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (
+                                  window.confirm("Delete this ticket?")
+                                )
+                                  handleDelete(ticket._id);
+                              }}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                              title="Delete Ticket"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
@@ -449,11 +614,10 @@ const SupportTickets = () => {
                         )}
                         <button
                           onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-1 text-sm border rounded transition-colors ${
-                            currentPage === page
+                          className={`px-3 py-1 text-sm border rounded transition-colors ${currentPage === page
                               ? "bg-[#293a90] text-white border-blue-600"
                               : "border-gray-300 hover:bg-gray-50"
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>

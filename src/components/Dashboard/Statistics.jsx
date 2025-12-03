@@ -12,16 +12,18 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { FiBarChart } from "react-icons/fi";
-import { ShoppingBag, TrendingUp, Users, RefreshCw } from "lucide-react";
+import { ShoppingBag, TrendingUp, Users, AlertCircle } from "lucide-react";
 import DashBoard from "../../pages/DashBoard";
 import useAdminStore from "../../store/useAdminStore";
 import useOrderStore from "../../store/useOrderStore";
+import useReturnStore from "../../store/useReturnStore"; 
 
 const Statistics = () => {
   const navigate = useNavigate();
   const { user, clearAuth } = useAdminStore();
 
   const { orders, fetchOrders, loading } = useOrderStore();
+  const { returnRequests, getAllReturnRequests } = useReturnStore(); 
 
   useEffect(() => {
     if (!user) {
@@ -39,20 +41,17 @@ const Statistics = () => {
       return;
     }
     fetchOrders(1, 100);
-  }, [user, navigate, clearAuth, fetchOrders]);
+    getAllReturnRequests({ page: 1, limit: 1000 });
+  }, [user, navigate, clearAuth, fetchOrders, getAllReturnRequests]);
 
-  // Total orders count
   const totalOrders = orders.length;
 
-  // Average order amount (avoid division by zero)
   const avgOrderAmount = totalOrders
     ? orders.reduce((sum, o) => sum + o.totalAmount, 0) / totalOrders
     : 0;
 
-  // Total order amount revenue sum
   const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
 
-  // Count product sales considering missing product data as "Unknown Product"
   const productCounts = {};
   orders.forEach((order) => {
     order.items.forEach((item) => {
@@ -62,16 +61,14 @@ const Statistics = () => {
         (productCounts[productName] || 0) + item.quantity;
     });
   });
-  // Find top seller product and count
   const topSellerEntry =
     Object.entries(productCounts).sort((a, b) => b[1] - a[1])[0] || [
       "Unknown Product",
       0,
     ];
 
-  // Returns count based on status "returned" or "refunded"
-  const returnsCount = orders.filter(
-    (o) => o.status === "returned" || o.status === "refunded"
+  const pendingReturnsCount = returnRequests.filter(
+    (request) => request.returnRequest?.requestStatus === "pending"
   ).length;
 
   // Prepare chart data grouped by date, summed
@@ -185,22 +182,24 @@ const Statistics = () => {
             </div>
           </div>
 
-          {/* Returns */}
-          <div className="bg-white rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 h-[140px] flex flex-col justify-between">
+          <div
+            className="bg-white rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow border border-gray-200 h-[140px] flex flex-col justify-between cursor-pointer group"
+            onClick={() => navigate('/returns')}
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
-                  Returns
+                  Pending Returns
                 </p>
                 <div className="space-y-1">
                   <p className="text-3xl font-bold text-gray-900">
-                    {returnsCount}
+                    {pendingReturnsCount}
                   </p>
-                  <p className="text-xs text-gray-500">return requests</p>
+                  <p className="text-xs text-gray-500">awaiting review</p>
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-orange-50">
-                <RefreshCw className="h-5 w-5 text-orange-600" />
+              <div className="p-3 rounded-lg bg-amber-50 group-hover:bg-amber-100 transition-colors">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
               </div>
             </div>
           </div>

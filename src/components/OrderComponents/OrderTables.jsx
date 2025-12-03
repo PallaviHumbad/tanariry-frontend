@@ -14,7 +14,6 @@ import useOrderStore from "../../store/useOrderStore";
 const OrdersTable = () => {
   const navigate = useNavigate();
 
-  //  FIXED: Simple store selector WITHOUT shallow - prevents infinite loops
   const {
     fetchOrders,
     changeOrderStatus,
@@ -34,7 +33,6 @@ const OrdersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [isInitialized, setIsInitialized] = useState(false);
-
 
   const mappedData = useMemo(() => {
     return orders.map((order) => ({
@@ -58,8 +56,6 @@ const OrdersTable = () => {
     }));
   }, [orders]);
 
-
-  //  FIXED: Load data ONCE only
   useEffect(() => {
     if (!isInitialized) {
       const loadData = async () => {
@@ -75,14 +71,12 @@ const OrdersTable = () => {
     }
   }, [isInitialized, fetchOrders, fetchOrderSummary]);
 
-  // Handle errors
   useEffect(() => {
     if (error) {
       toast.error(error);
     }
   }, [error]);
 
-  //  FIXED: Filtering with controlled dependencies
   useEffect(() => {
     let filtered = mappedData;
 
@@ -98,7 +92,6 @@ const OrdersTable = () => {
       filtered = filtered.filter((item) => item.orderStatus === filterStatus);
     }
 
-    // Stable sort function
     filtered.sort((a, b) => {
       let aValue, bValue;
       switch (sortBy) {
@@ -129,7 +122,6 @@ const OrdersTable = () => {
     setCurrentPage(1);
   }, [mappedData, searchText, filterStatus, sortBy, sortOrder]);
 
-  //  FIXED: Stable handlers with useCallback
   const handleStatusChange = useCallback(
     async (record, value) => {
       try {
@@ -208,7 +200,6 @@ const OrdersTable = () => {
     return colors[status] || "bg-gray-50 text-gray-700 border border-gray-200";
   };
 
-  // Loading state
   if (loading && orders.length === 0 && !isInitialized) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -308,8 +299,12 @@ const OrdersTable = () => {
                     key={record.key}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-[#293a90]">
+                    {/* UPDATED: Clickable Order ID cell */}
+                    <td
+                      className="px-6 py-4 cursor-pointer"
+                      onClick={() => handleViewDetails(record.id, record.orderDetails)}
+                    >
+                      <span className="text-sm font-medium text-[#293a90] hover:underline">
                         {record.id.slice(-6).toUpperCase()}
                       </span>
                     </td>
@@ -424,11 +419,10 @@ const OrdersTable = () => {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-2 text-sm rounded-lg ${
-                          currentPage === page
+                        className={`px-3 py-2 text-sm rounded-lg ${currentPage === page
                             ? "bg-[#293a90] text-white border border-[#293a90]"
                             : "border border-gray-300 hover:bg-gray-50"
-                        }`}
+                          }`}
                         type="button"
                       >
                         {page}
