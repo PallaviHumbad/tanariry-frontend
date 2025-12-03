@@ -19,24 +19,31 @@ const DashBoard = ({ children }) => {
           {/* Navigation Buttons */}
           <div className="flex flex-wrap gap-2">
             <button
-              className={`px-4 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-                location.pathname === "/"
+              className={`px-4 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors ${location.pathname === "/"
                   ? "bg-[#293a90] text-white"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-300"
-              }`}
+                }`}
               onClick={() => navigate("/")}
             >
               Statistics
             </button>
             <button
-              className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                location.pathname === "/recentOrders"
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${location.pathname === "/recentOrders"
                   ? "bg-[#293a90] text-white"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-300"
-              }`}
+                }`}
               onClick={() => navigate("/recentOrders")}
             >
               Recent Orders
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${location.pathname === "/returns"
+                  ? "bg-[#293a90] text-white"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-300"
+                }`}
+              onClick={() => navigate("/returns")}
+            >
+              Return Requests
             </button>
           </div>
         </div>

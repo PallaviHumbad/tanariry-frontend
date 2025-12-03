@@ -36,6 +36,7 @@ import AddUserPage from "./components/UserComponents/AddUserPage";
 import EditUserPage from "./components/UserComponents/EditUserPage";
 import Finance from "./pages/Finance.jsx";
 import Report from "./pages/Report.jsx";
+import ReturnRequests from "./components/Dashboard/ReturnRequests.jsx";
 
 export default function App() {
   const { checkAuth, user, initializeAuth } = useAdminStore();
@@ -70,6 +71,7 @@ export default function App() {
               <Route path="sales/wishlist" element={<Wishlist />} />
               <Route path="sales/abandoned-cart" element={<AbandonedCart />} />
               <Route path="recentOrders" element={<RecentOrders />} />
+              <Route path="returns" element={<ReturnRequests />} />
               <Route path="dashboard" element={<DashBoard />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="users/add-user" element={<AddUserPage />} />
