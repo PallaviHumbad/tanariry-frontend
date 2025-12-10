@@ -1,17 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 import useAdminStore from '../store/useAdminStore';
 import axiosInstance from '../../utils/axios';
-
-const OrderNotificationContext = createContext();
-
-export const useOrderNotifications = () => {
-  const context = useContext(OrderNotificationContext);
-  if (!context) {
-    throw new Error('useOrderNotifications must be used within OrderNotificationProvider');
-  }
-  return context;
-};
+import OrderNotificationContext from './orderNotificationStore';
 
 export const OrderNotificationProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
@@ -128,10 +119,17 @@ export const OrderNotificationProvider = ({ children }) => {
     }
   }, []);
 
-  const clearNotifications = useCallback(() => {
+  const clearNotifications = useCallback(async () => {
     setNotifications([]);
     setUnreadCount(0);
-  }, []);
+
+    try {
+      await axiosInstance.delete('/notifications/read/all');
+    } catch (error) {
+        console.error("Error clearing notifications:", error);
+        fetchNotifications();
+    }
+  }, [fetchNotifications]);
 
   const value = {
     socket,

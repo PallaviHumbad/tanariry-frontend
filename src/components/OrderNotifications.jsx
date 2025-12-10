@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useOrderNotifications } from '../context/OrderNotificationContext';
+import { useOrderNotifications } from '../context/orderNotificationStore';
 import { Bell, X, Check, Package, RefreshCw, XCircle, CheckCircle } from 'lucide-react';
 
 const OrderNotifications = () => {
