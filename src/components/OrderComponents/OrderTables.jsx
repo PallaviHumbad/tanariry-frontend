@@ -19,7 +19,10 @@ const OrdersTable = () => {
     changeOrderStatus,
     fetchOrderSummary,
     deleteOrder,
-    shipOrderWithDelhivery, // <-- store action
+    shipOrderWithDelhivery,
+    cancelShipment,
+    schedulePickup,
+    downloadShippingLabel,
     orders,
     summary,
     loading,
@@ -188,6 +191,50 @@ const OrdersTable = () => {
     },
     [shipOrderWithDelhivery]
   );
+  const handleCancelShipment = useCallback(
+    async (record) => {
+      if (!window.confirm("Are you sure you want to cancel this shipment?")) {
+        return;
+      }
+
+      try {
+        const response = await cancelShipment(record.id);
+        toast.success(response.message || "Shipment cancelled successfully");
+      } catch (err) {
+        toast.error(
+          err?.response?.data?.message || "Failed to cancel shipment"
+        );
+      }
+    },
+    [cancelShipment]
+  );
+  const handleSchedulePickup = useCallback(
+    async (record) => {
+      try {
+        await schedulePickup(record.id);
+        toast.success("Pickup scheduled successfully");
+      } catch (err) {
+        toast.error(
+          err?.response?.data?.message || "Failed to schedule pickup"
+        );
+      }
+    },
+    [schedulePickup]
+  );
+
+  const handleDownloadLabel = useCallback(
+    async (record) => {
+      try {
+        await downloadShippingLabel(record.id);
+        toast.success("Label downloaded successfully");
+      } catch (err) {
+        toast.error(
+          err?.response?.data?.message || "Failed to download label"
+        );
+      }
+    },
+    [downloadShippingLabel]
+  );
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -353,14 +400,39 @@ const OrdersTable = () => {
                     </td>
 
                     {/* Shipment cell with toggle */}
-                    <td className="px-6 py-4 text-sm">
-                      {record.orderStatus === "shipped" &&
-                        record.waybill ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-                          Shipped
-                        </span>
+                    {/* Shipment cell - 3 Compact Buttons */}
+                    <td className="px-6 py-4 align-middle">
+                      {record.orderStatus === "shipped" && record.waybill ? (
+                        <div className="flex flex-col gap-1.5 min-w-[130px]">
+                          {/* Schedule Pickup - Primary */}
+                          <button
+                            type="button"
+                            onClick={() => handleSchedulePickup(record)}
+                            className="w-full px-3 py-1.5 text-xs font-medium rounded bg-[#293a90] text-white hover:bg-[#1f2c6d] shadow-sm transition-all"
+                          >
+                            Schedule Pickup
+                          </button>
+
+                          {/* Download Label - Secondary */}
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadLabel(record)}
+                            className="w-full px-3 py-1 text-[11px] font-medium rounded bg-blue-50 text-[#293a90] hover:bg-blue-100 border border-blue-100 transition-all"
+                          >
+                            Download Label
+                          </button>
+
+                          {/* Cancel Shipment - Danger/Tertiary */}
+                          <button
+                            type="button"
+                            onClick={() => handleCancelShipment(record)}
+                            className="w-full px-3 py-1 text-[11px] font-medium rounded bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-all"
+                          >
+                            Cancel Shipment
+                          </button>
+                        </div>
                       ) : record.orderStatus === "cancelled" ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">
+                        <span className="inline-block px-2.5 py-1 text-xs font-medium rounded-full bg-red-50 text-red-700 border border-red-200">
                           Cancelled
                         </span>
                       ) : (
@@ -368,7 +440,7 @@ const OrdersTable = () => {
                           type="button"
                           onClick={() => handleShipOrder(record)}
                           disabled={record.orderStatus !== "confirmed"}
-                          className={`px-3 py-1 text-xs rounded-full border ${record.orderStatus === "confirmed"
+                          className={`px-4 py-1.5 text-xs font-medium rounded border transition-colors whitespace-nowrap ${record.orderStatus === "confirmed"
                             ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
                             : "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
                             }`}

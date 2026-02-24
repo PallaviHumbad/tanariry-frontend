@@ -13,14 +13,14 @@ const useOrderStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.post(
-        `/orders/${orderId}/ship-with-delhivery`
+        `/orders/${orderId}/ship-with-delhivery`,
       );
 
       const updatedOrder = response.data.data.order;
 
       set((state) => ({
         orders: state.orders.map((order) =>
-          order._id === orderId ? updatedOrder : order
+          order._id === orderId ? updatedOrder : order,
         ),
         order: state.order?._id === orderId ? updatedOrder : state.order,
         loading: false,
@@ -42,7 +42,7 @@ const useOrderStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.get(
-        `/orders/getAllOrders?page=${page}&limit=${limit}`
+        `/orders/getAllOrders?page=${page}&limit=${limit}`,
       );
       set({
         orders: response.data.data.orders || [],
@@ -104,7 +104,7 @@ const useOrderStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.get(
-        `/orders/getOrdersByCustomerId/${customerId}`
+        `/orders/getOrdersByCustomerId/${customerId}`,
       );
       set({
         orders: response.data.data || [],
@@ -130,13 +130,13 @@ const useOrderStore = create((set, get) => ({
 
       const response = await axiosInstance.patch(
         `/orders/updateOrdersStatus/${orderId}/status`,
-        { status } // Send ONLY { status: "shipped" }
+        { status }, // Send ONLY { status: "shipped" }
       );
 
       // Update local state optimistically
       set((state) => ({
         orders: state.orders.map((order) =>
-          order._id === orderId ? { ...order, status } : order
+          order._id === orderId ? { ...order, status } : order,
         ),
         order:
           state.order?._id === orderId
@@ -156,19 +156,100 @@ const useOrderStore = create((set, get) => ({
     }
   },
 
+  // Cancel Shipment
+  cancelShipment: async (orderId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.post(
+        `/orders/${orderId}/cancel-shipment`,
+      );
+      const updatedStatus = response.data.data.status;
+      set((state) => ({
+        orders: state.orders.map((order) =>
+          order._id === orderId ? { ...order, status: updatedStatus } : order,
+        ),
+        order:
+          state.order?._id === orderId
+            ? { ...state.order, status: updatedStatus }
+            : state.order,
+        loading: false,
+      }));
+
+      return response.data;
+    } catch (error) {
+      console.error("Cancel shipment error:", error);
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  // Schedule Pickup
+  schedulePickup: async (orderId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.post(
+        `/orders/${orderId}/schedule-pickup`,
+      );
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      console.error("Schedule pickup error:", error);
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  // Download Shipping Label
+  downloadShippingLabel: async (orderId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get(
+        `/orders/${orderId}/shipping-label`,
+        {
+          responseType: "blob",
+        },
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `shipping-label-${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      set({ loading: false });
+      return response;
+    } catch (error) {
+      console.error("Download label error:", error);
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
   // Update full order
   updateOrder: async (orderId, orderData) => {
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.patch(
         `/orders/updateOrdersById/${orderId}`,
-        orderData
+        orderData,
       );
 
       // Update local state
       set((state) => ({
         orders: state.orders.map((order) =>
-          order._id === orderId ? response.data.data : order
+          order._id === orderId ? response.data.data : order,
         ),
         order: response.data.data,
         loading: false,
@@ -216,7 +297,7 @@ const useOrderStore = create((set, get) => ({
         `/api/orders/${orderId}/invoice`,
         {
           responseType: "blob",
-        }
+        },
       );
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
