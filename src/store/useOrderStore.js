@@ -446,6 +446,23 @@ const useOrderStore = create((set, get) => ({
     }
   },
 
+  trackDelhiveryShipment: async (waybill) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get(`/orders/track/${waybill}`);
+
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      console.error("Track shipment error:", error);
+      set({
+        error: error.response?.data?.message || error.message,
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
   // Webhook payload
   delhiveryWebhook: async (payload) => {
     set({ loading: true, error: null });

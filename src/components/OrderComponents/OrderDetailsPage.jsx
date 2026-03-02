@@ -11,7 +11,9 @@ import {
   Mail,
   Phone,
   Calendar,
-  CreditCard
+  CreditCard,
+  Truck,
+  RefreshCw
 } from "lucide-react";
 import useOrderStore from "../../store/useOrderStore";
 
@@ -30,8 +32,19 @@ const OrderDetailsPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { fetchOrderById, order, loading: storeLoading } = useOrderStore();
+
+  const {
+    fetchOrderById,
+    trackDelhiveryShipment, // <-- Tracking Function Import kiya
+    order,
+    loading: storeLoading
+  } = useOrderStore();
+
   const [localLoading, setLocalLoading] = useState(false);
+
+  // Tracking ke liye local states
+  const [trackingData, setTrackingData] = useState(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
 
   useEffect(() => {
     const orderId = id || location.state?.order?._id;
@@ -51,6 +64,32 @@ const OrderDetailsPage = () => {
   }, [id, location.state?.order?._id, fetchOrderById]);
 
   const currentOrder = order || location.state?.order || {};
+  const activeOrder = order || currentOrder;
+
+  // Tracking details fetch karne ka effect
+  useEffect(() => {
+    const fetchTracking = async () => {
+      // Return order hai to returnWaybill warna normal waybill
+      const waybill = activeOrder?.returnWaybill || activeOrder?.waybill;
+      if (!waybill) return;
+
+      setTrackingLoading(true);
+      try {
+        const response = await trackDelhiveryShipment(waybill);
+        // Store se directly data milta hai response.data format me
+        setTrackingData(response?.data);
+      } catch (err) {
+        console.error("Tracking API failed:", err);
+        // Error ko silently ignore kar sakte hain ya toast dikha sakte hain
+      } finally {
+        setTrackingLoading(false);
+      }
+    };
+
+    if (activeOrder?._id && (activeOrder?.waybill || activeOrder?.returnWaybill)) {
+      fetchTracking();
+    }
+  }, [activeOrder?._id, activeOrder?.waybill, activeOrder?.returnWaybill, trackDelhiveryShipment]);
 
   if (storeLoading || localLoading || (!order && Object.keys(currentOrder).length === 0)) {
     return (
@@ -75,7 +114,6 @@ const OrderDetailsPage = () => {
     );
   }
 
-  const activeOrder = order || currentOrder;
   const handleBack = () => navigate("../");
   const handlePrint = () => window.print();
 
@@ -94,7 +132,7 @@ const OrderDetailsPage = () => {
       delivered: "bg-purple-100 text-purple-800 border-purple-300",
       cancelled: "bg-red-100 text-red-800 border-red-300",
     };
-    return badges[status] || badges.pending;
+    return badges[status] || "bg-gray-100 text-gray-800 border-gray-300";
   };
 
   const getPaymentStatusBadge = (status) => {
@@ -102,9 +140,12 @@ const OrderDetailsPage = () => {
       paid: "bg-green-100 text-green-800 border-green-300",
       pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
       failed: "bg-red-100 text-red-800 border-red-300",
+      completed: "bg-green-100 text-green-800 border-green-300"
     };
-    return badges[status] || "bg-gray-100 text-gray-800 border-gray-300";
+    return badges[status?.toLowerCase()] || "bg-gray-100 text-gray-800 border-gray-300";
   };
+
+  const activeWaybill = activeOrder.returnWaybill || activeOrder.waybill;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -133,7 +174,7 @@ const OrderDetailsPage = () => {
                 </div>
 
                 <span className={`px-3 py-1 rounded-full border text-xs font-medium ${getStatusBadge(activeOrder.status)}`}>
-                  {activeOrder.status}
+                  {String(activeOrder.status).replace(/_/g, ' ').toUpperCase()}
                 </span>
 
                 <span className={`px-3 py-1 rounded-full border text-xs font-medium ${getPaymentStatusBadge(activeOrder.paymentInfo?.status)}`}>
@@ -263,78 +304,157 @@ const OrderDetailsPage = () => {
           </div>
 
           {/* RIGHT SECTION */}
-          <div className="bg-white rounded-lg border border-gray-200 flex flex-col h-full">
-            <div className="flex-1">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-base font-semibold text-gray-900 mb-4">Customer</h2>
-                <div className="flex items-start gap-3">
-                  <User size={16} className="text-gray-400 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900">
+          <div className="flex flex-col gap-6">
+
+            {/* Customer Details Box */}
+            <div className="bg-white rounded-lg border border-gray-200 flex flex-col">
+              <div className="flex-1">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-base font-semibold text-gray-900 mb-4">Customer</h2>
+                  <div className="flex items-start gap-3">
+                    <User size={16} className="text-gray-400 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-gray-900">
+                        {activeOrder.customerId?.firstName} {activeOrder.customerId?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">Customer details</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-base font-semibold text-gray-900 mb-4">Contact information</h2>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Mail size={16} className="text-gray-400" />
+                      <span className="text-sm text-gray-900">{activeOrder.customerId?.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone size={16} className="text-gray-400" />
+                      <span className="text-sm text-gray-900">
+                        {activeOrder.customerId?.phone || "No phone number"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                    <MapPin size={18} className="text-gray-400" />
+                    Shipping address
+                  </h2>
+                  <div className="text-sm text-gray-900 space-y-1">
+                    <p className="font-medium">
                       {activeOrder.customerId?.firstName} {activeOrder.customerId?.lastName}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">1 Order</p>
+
+                    <p>{activeOrder.shippingAddress?.address}</p>
+
+                    <p>
+                      {activeOrder.shippingAddress?.city}, {activeOrder.shippingAddress?.state}{" "}
+                      {activeOrder.shippingAddress?.pincode}
+                    </p>
+
+                    <p>{activeOrder.shippingAddress?.country}</p>
+
+                    <p className="pt-2 text-gray-600">{activeOrder.customerId?.phone}</p>
                   </div>
                 </div>
-              </div>
 
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-base font-semibold text-gray-900 mb-4">Contact information</h2>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Mail size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-900">{activeOrder.customerId?.email}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Phone size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-900">
-                      {activeOrder.customerId?.phone || "No phone number"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2 mb-4">
-                  <MapPin size={18} className="text-gray-400" />
-                  Shipping address
-                </h2>
-                <div className="text-sm text-gray-900 space-y-1">
-                  <p className="font-medium">
-                    {activeOrder.customerId?.firstName} {activeOrder.customerId?.lastName}
-                  </p>
-
-                  <p>{activeOrder.shippingAddress?.address}</p>
-
-                  <p>
-                    {activeOrder.shippingAddress?.city}, {activeOrder.shippingAddress?.state}{" "}
-                    {activeOrder.shippingAddress?.pincode}
-                  </p>
-
-                  <p>{activeOrder.shippingAddress?.country}</p>
-
-                  <p className="pt-2 text-gray-600">{activeOrder.customerId?.phone}</p>
-                </div>
-              </div>
-
-              {activeOrder.isReturnable !== undefined && (
-                <div className="px-6 py-4">
-                  <h2 className="text-base font-semibold text-gray-900 mb-4">Return policy</h2>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Returnable</span>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${activeOrder.isReturnable
+                {activeOrder.isReturnable !== undefined && (
+                  <div className="px-6 py-4">
+                    <h2 className="text-base font-semibold text-gray-900 mb-4">Return policy</h2>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Returnable</span>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${activeOrder.isReturnable
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
-                        }`}
-                    >
-                      {activeOrder.isReturnable
-                        ? `Yes (${activeOrder.returnWindowDays} days)`
-                        : "No"}
-                    </span>
+                          }`}
+                      >
+                        {activeOrder.isReturnable
+                          ? `Yes (${activeOrder.returnWindowDays} days)`
+                          : "No"}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+
+            {/* NEW: TRACKING INFORMATION BOX */}
+            {activeWaybill && (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                  <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                    <Truck size={18} className="text-gray-400" />
+                    Tracking Status
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="mb-5 flex flex-col gap-1">
+                    <span className="text-xs text-gray-500 font-mono">AWB: {activeWaybill}</span>
+                    <span className="text-xs text-gray-500">Courier: Delhivery {activeOrder.returnWaybill ? "(Reverse)" : ""}</span>
+                  </div>
+
+                  {trackingLoading ? (
+                    <div className="flex justify-center py-6">
+                      <RefreshCw className="animate-spin w-6 h-6 text-[#293a90]" />
+                    </div>
+                  ) : trackingData ? (
+                    <div>
+                      <div className="mb-6 flex flex-col gap-1.5">
+                        <span className="w-fit px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-md uppercase tracking-wider">
+                          {trackingData.status || "Status Unknown"}
+                        </span>
+                        {trackingData.eta && (
+                          <span className="text-xs font-medium text-gray-600 mt-1">
+                            Estimated Delivery: {new Date(trackingData.eta).toLocaleDateString("en-IN", { dateStyle: "long" })}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Dynamic Timeline */}
+                      {trackingData.events && trackingData.events.length > 0 ? (
+                        <div className="relative border-l-2 border-gray-200 ml-2 space-y-6">
+                          {trackingData.events.map((ev, idx) => (
+                            <div key={idx} className="pl-5 relative">
+                              {/* Timeline dot */}
+                              <div className={`absolute w-3 h-3 rounded-full -left-[7px] top-1.5 ${idx === 0 ? 'bg-[#293a90] ring-4 ring-indigo-50' : 'bg-gray-300'}`}></div>
+
+                              <p className={`text-sm font-medium ${idx === 0 ? 'text-gray-900' : 'text-gray-600'}`}>
+                                {ev.status || ev.instructions || ev.activity || "In Transit"}
+                              </p>
+
+                              {ev.date && (
+                                <p className="text-xs text-gray-500 mt-1 font-mono">
+                                  {new Date(ev.date).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                                </p>
+                              )}
+
+                              {ev.location && (
+                                <p className="text-xs text-gray-500 mt-0.5 font-medium flex items-center gap-1">
+                                  <MapPin size={10} /> {ev.location}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-2 bg-gray-50 rounded border border-gray-100">
+                          Tracking updates will appear here soon.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded border border-gray-100">
+                      Tracking info not generated yet. Please check back later.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       </div>

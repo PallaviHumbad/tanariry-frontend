@@ -271,7 +271,7 @@ const ReturnRequests = () => {
                                                     </td>
                                                     <td className="py-3 px-4">
                                                         <span className="text-xs font-medium text-blue-600">
-                                                            #{request._id.slice(-6)}
+                                                            #{request?._id?.slice(-6) || "N/A"}
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-4">
@@ -292,7 +292,7 @@ const ReturnRequests = () => {
                                                     </td>
                                                     <td className="py-3 px-4">
                                                         <span className="text-xs font-medium text-gray-900">
-                                                            ₹{request.totalAmount.toFixed(2)}
+                                                            ₹{Number(request?.totalAmount || 0).toFixed(2)}
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-4">
@@ -381,7 +381,7 @@ const ReturnRequests = () => {
                                                     returnReq?.requestStatus?.slice(1) || "Unknown"}
                                             </div>
                                             <span className="text-xs font-medium text-blue-600">
-                                                #{request._id.slice(-6)}
+                                                #{request?._id?.slice(-6) || "N/A"}
                                             </span>
                                         </div>
 
@@ -407,7 +407,7 @@ const ReturnRequests = () => {
                                             <div>
                                                 <span className="text-gray-500">Amount:</span>
                                                 <div className="font-medium text-gray-900 mt-0.5">
-                                                    ₹{request.totalAmount.toFixed(2)}
+                                                    ₹{Number(request?.totalAmount || 0).toFixed(2)}
                                                 </div>
                                             </div>
                                             <div className="col-span-2">
@@ -523,13 +523,13 @@ const ReturnRequests = () => {
                                         <div>
                                             <span className="text-gray-600">Order ID:</span>
                                             <span className="ml-2 font-medium break-all">
-                                                #{selectedRequest._id.slice(-8)}
+                                                #{selectedRequest?._id?.slice(-8) || "N/A"}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-gray-600">Amount:</span>
                                             <span className="ml-2 font-medium">
-                                                ₹{selectedRequest.totalAmount.toFixed(2)}
+                                                ₹{Number(selectedRequest?.totalAmount || 0).toFixed(2)}
                                             </span>
                                         </div>
                                         <div className="sm:col-span-2">
