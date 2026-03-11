@@ -22,6 +22,8 @@ import {
   Trash2,
   PackageCheck,
   RotateCcw,
+  CreditCard, // NEW: Imported for bank fallback
+  Landmark,   // NEW: Imported for bank details card
 } from "lucide-react";
 import useCustomerStore from "../store/useCustomerStore";
 import useOrderStore from "../store/useOrderStore";
@@ -41,6 +43,7 @@ const CustomerDetails = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // NEW: activeTab abhi orders, addresses, aur bankDetails handle karega
   const [activeTab, setActiveTab] = useState("orders");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -352,13 +355,16 @@ const CustomerDetails = () => {
               </div>
             </div>
 
+            {/* TAB NAVIGATION */}
             <div className="flex border-t border-gray-200 bg-gray-50">
               <button onClick={() => setActiveTab("orders")} className={`flex-1 py-3 text-xs font-medium border-b-2 transition-colors ${activeTab === "orders" ? "border-[#293a90] text-[#293a90] bg-white" : "border-transparent text-gray-500 hover:text-gray-700"}`}>Order History</button>
               <button onClick={() => setActiveTab("addresses")} className={`flex-1 py-3 text-xs font-medium border-b-2 transition-colors ${activeTab === "addresses" ? "border-[#293a90] text-[#293a90] bg-white" : "border-transparent text-gray-500 hover:text-gray-700"}`}>Addresses ({editedCustomer.addresses?.length || 0})</button>
+              <button onClick={() => setActiveTab("bankDetails")} className={`flex-1 py-3 text-xs font-medium border-b-2 transition-colors ${activeTab === "bankDetails" ? "border-[#293a90] text-[#293a90] bg-white" : "border-transparent text-gray-500 hover:text-gray-700"}`}>Bank Details</button>
             </div>
           </div>
 
           <div className="space-y-6">
+            {/* ORDERS TAB */}
             {activeTab === "orders" && (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -452,6 +458,7 @@ const CustomerDetails = () => {
               </>
             )}
 
+            {/* ADDRESSES TAB */}
             {activeTab === "addresses" && (
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
                 <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
@@ -481,9 +488,41 @@ const CustomerDetails = () => {
                 </div>
               </div>
             )}
+
+            {/* BANK DETAILS TAB (NEW) */}
+            {activeTab === "bankDetails" && (
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                  <h3 className="text-sm font-semibold text-gray-900">Saved Bank Details</h3>
+                </div>
+                <div className="p-4">
+                  {editedCustomer.bankDetails && editedCustomer.bankDetails.accountNumber ? (
+                    <div className="max-w-md border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Landmark size={16} className="text-blue-600" />
+                        <span className="text-xs font-bold text-gray-700 uppercase">Primary Account</span>
+                      </div>
+                      <div className="text-xs text-gray-700 space-y-2">
+                        <p><span className="font-medium text-gray-500">Bank Name:</span> <span className="font-semibold">{editedCustomer.bankDetails.bankName}</span></p>
+                        <p><span className="font-medium text-gray-500">Account Holder:</span> <span className="font-semibold">{editedCustomer.bankDetails.accountHolderName}</span></p>
+                        <p><span className="font-medium text-gray-500">Account Number:</span> <span className="font-semibold">{editedCustomer.bankDetails.accountNumber}</span></p>
+                        <p><span className="font-medium text-gray-500">IFSC Code:</span> <span className="font-semibold">{editedCustomer.bankDetails.ifscCode}</span></p>
+                        <p><span className="font-medium text-gray-500">Branch Name:</span> <span className="font-semibold">{editedCustomer.bankDetails.branchName || "N/A"}</span></p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500 py-8">
+                      <CreditCard size={32} className="mx-auto mb-2 text-gray-300" />
+                      <p className="text-xs">No bank details added yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Modal for Address (Existing) */}
         {isModalVisible && (
           <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
